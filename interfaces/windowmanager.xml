@@ -1,0 +1,208 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<!-- Copyright (C) 2016, 2017 Mentor Graphics Development (Deutschland) GmbH
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License. -->
+<node>
+	<!--
+	  org.agl.windowmanager:
+	  @short_description: A Layout-based interface for the WindowManager.
+
+	  A Layout defines a list of surfaces areas.
+	-->
+	<interface name="org.agl.windowmanager">
+		<!--
+		  addLayout:
+		  @layoutId: A unique ID that represents this layout. If the ID is already in use WINDOWMANAGER_ERROR_ID_ALREADY_DEFINED will be returned.
+		  @layoutName: A user readable string for the layout. If the string is already in use WINDOWMANAGER_ERROR_NAME_ALREADY_DEFINED will be returned.
+		  @surfaceAreas: A list of surface areas.
+		  @error: WINDOWMANAGER_NO_ERROR or the first error that occurred.
+
+		  Add a layout definition to the WindowManayer layout database.
+		  The layout database is temoprary and not stored persistently. It has to be recreated by the client after
+		  a WindowManager restart.
+		-->
+		<method name="addLayout">
+			<arg name="layoutId" type="i" direction="in"/>
+			<arg name="layoutName" type="s" direction="in"/>
+			<arg name="surfaceAreas" type="a(iiii)" direction="in"/>
+			<annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QList&lt;LayoutArea&gt;"/>
+			<arg name="error" type="i" direction="out"/>
+		</method>
+
+		<!--
+		  deleteLayoutById:
+		  @layoutId: The ID of the layout to delete.
+		  @error: WINDOWMANAGER_NO_ERROR or the first error that occurred.
+
+		  Deletes the layout with the given ID. This cannot be the current active layout!
+		-->
+		<method name="deleteLayoutById">
+			<arg name="layoutId" type="i" direction="in"/>
+			<arg name="error" type="i" direction="out"/>
+		</method>
+
+		<!--
+		  setLayoutById:
+		  @layoutId: The ID of the layout to activate.
+		  @error: WINDOWMANAGER_NO_ERROR or the first error that occurred.
+
+		  Switch to the layout with the given ID.
+		-->
+		<method name="setLayoutById">
+			<arg name="layoutId" type="i" direction="in"/>
+			<arg name="error" type="i" direction="out"/>
+		</method>
+		<!--
+		  setLayoutByName:
+		  @layoutName: The name of the layout to activate.
+		  @error: WINDOWMANAGER_NO_ERROR or the first error that occurred.
+
+		  Switch to the layout with the given name.
+		-->
+		<method name="setLayoutByName">
+			<arg name="layoutName" type="s" direction="in"/>
+			<arg name="error" type="i" direction="out"/>
+		</method>
+
+		<!--
+		  getLayoutName:
+		  @layoutId: The ID of the requested layout name.
+		  @layoutName: The name of the layout with the given ID.
+
+		  Request the name of the layout with the given ID. This does not set or activate a layout.
+		  It is just returning the name of the given layout.
+		-->
+		<method name="getLayoutName">
+			<arg name="layoutId" type="i" direction="in"/>
+			<arg name="layoutName" type="s" direction="out"/>
+		</method>
+
+		<!--
+		  layout:
+		  The current active layout with all its information.
+		-->
+		<property>
+			<arg name="layout" type="(isa(iiii))" access="read"/>
+			<annotation name="org.qtproject.QtDBus.QtTypeName" value="Layout"/>
+		</property>
+		<!--
+		  layoutId:
+		  The current active layout id. This property is redundant, since its info is already available
+		  in the property layout. But this property is more lightweight.
+		-->
+		<property name="layoutId" type="i" access="read"/>
+		<!--
+		  layoutName:
+		  The name of the current active layout. This property is redundant, since its info is already available
+		  in the property layout. But this property is more lightweight.
+		-->
+		<property name="layoutName" type="s" access="read"/>
+
+		<!--
+		  getAllLayouts:
+		  @layouts: A list of all layouts.
+
+		  Returns a list of all layouts that were added to the WindowManager.
+		-->
+		<method name="getAllLayouts">
+			<arg name="layoutIds" type="a(isa(iiii))" direction="out"/>
+			<annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QList&lt;Layout&gt;"/>
+		</method>
+
+		<!--
+		  getAvailableLayouts:
+		  @numberOfAppSurfaces: The ID of the requested layout name.
+		  @layoutIds: A list of layouts that offer the exact requested ammount of surface render areas.
+
+		  Returns a list of layouts that offer the exact requested ammount of surface render areas.
+		  If the list is empty, no layout fits the exact ammount.
+		-->
+
+		<method name="getAvailableLayouts">
+			<arg name="numberOfAppSurfaces" type="i" direction="in"/>
+			<arg name="layoutIds" type="ai" direction="out"/>
+			<annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QList&lt;int&gt;"/>
+		</method>
+
+		<!--
+		  setSurfaceToLayoutArea:
+		  @surfaceId: The ID of the surface that shall be positioned.
+		  @layoutAreaId: The ID of the layout area where the surface shall be rendered.
+		  @error: WINDOWMANAGER_NO_ERROR or the first error that occurred.
+
+		  The surface will be scaled to the size of the layout area.
+		  The surface will be made visible with this call.
+		-->
+		<method name="setSurfaceToLayoutArea">
+			<arg name="surfaceId" type="i" direction="in"/>
+			<arg name="layoutAreaId" type="i" direction="in"/>
+			<arg name="error" type="i" direction="out"/>
+		</method>
+
+		<!--
+		  getAvailableSurfaces:
+		  @surfaceIds: A list of all known surfaceIds except for the surfaces created by the Home Screen app.
+
+		  If no surfaces are available, the returned list is empty.
+		-->
+		<method name="getAvailableSurfaces">
+			<arg name="surfaceIds" type="a(i)" direction="out"/>
+			<annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QList&lt;int&gt;"/> 
+		</method>
+
+		<!--
+		  surfaceVisibilityChanged:
+		  @surfaceId: The surface that changed.
+		  @visible: True, if the surface is visible.
+
+		  This is emitted when the visible property of the surfaces changes.
+		-->
+		<signal name="surfaceVisibilityChanged">
+			<arg name="surfaceId" type="i"/>
+			<arg name="visible" type="b"/>
+		</signal>
+
+		<!--
+		  showLayer:
+		  @layer: The ID of the layer to show. POPUP=0, HOMESCREEN_OVERLAY=1, APPS=2, HOMESCREEN=3
+		  @pid: The PID of the app to show. (used only when layer is APPS=2)
+
+		  Show complete layers.
+		  By default, all layers are shown.
+		-->
+		<method name="showLayer">
+			<arg name="layer" type="i" direction="in"/>
+			<arg name="pid" type="i" direction="in"/>
+		</method>
+		<!--
+		  showAppLayer:
+		  @pid: The PID of the app to show.
+
+		  Show layer for application .
+		-->
+		<method name="showAppLayer">
+			<arg name="pid" type="i" direction="in"/>
+		</method>
+		<!--
+		  hideLayer:
+		  @layer: The ID of the layer to hide. POPUP=0, HOMESCREEN_OVERLAY=1, APPS=2, HOMESCREEN=3
+
+		  Hide complete layers.
+		  By default, all layers are shown.
+		-->
+		<method name="hideLayer">
+			<arg name="layer" type="i" direction="in"/>
+		</method>
+	</interface>
+</node>
+

@@ -1,0 +1,19 @@
+[Unit]
+Description=AGL reference HomeScreen
+Requires=dbus.service afm-user-daemon.service InputEventManager.service HomeScreenAppFrameworkBinderAGL.service
+After=dbus.service afm-user-daemon.service InputEventManager.service HomeScreenAppFrameworkBinderAGL.service
+ConditionKernelCommandLine=!agl.nogfx
+
+[Service]
+User=root
+Type=dbus
+BusName=org.agl.homescreen
+ExecStartPre=/bin/systemctl --user is-active WindowManager
+ExecStart=/usr/AGL/homescreen/HomeScreen
+# 4194304(= 1 << 22) is special surface id for HomeScreen
+Environment=QT_IVI_SURFACE_ID=4194304 QT_WAYLAND_SHELL_INTEGRATION=ivi-shell LD_PRELOAD=/usr/lib/libEGL.so.1
+Restart=on-failure
+RestartSec=1
+
+[Install]
+WantedBy=default.target
