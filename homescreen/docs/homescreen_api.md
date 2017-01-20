@@ -90,6 +90,7 @@ A surface can be visible or invisible (please do not confuse “visible” and �
 
 Right now an application has to pull this information.
 This is not optimal and will change in the future. There are two options:
+
  - The homescreen API will provide a signal that is emitted every time the visible status of surfaces changes. This would be way more efficient, because it would save time and avoid a re-occurring API call. __UPDATE:__ There is a D-Bus signal implemented in this API
  - For Qt, there is already a patch available that provides this information as a base class property. See https://codereview.qt-project.org/#/c/176211/ This would be optimal for Qt widget applications. But not useful for other languages, e.g. Java. __UPDATE:__ This patch got reverted in AGL!
 
