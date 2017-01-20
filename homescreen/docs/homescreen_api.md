@@ -67,7 +67,7 @@ namespace InputEvent {
 
 This will change in the future.
  
-![AGL HVAC](pictures/api_hardKeyPressed.png)
+![hardKeyPressed](pictures/api_hardKeyPressed.png)
  
 A “normal” application would not need to call this API.
 
@@ -90,20 +90,20 @@ A surface can be visible or invisible (please do not confuse “visible” and �
 
 Right now an application has to pull this information.
 This is not optimal and will change in the future. There are two options:
-*   The homescreen API will provide a signal that is emitted every time the visible status of surfaces changes. This would be way more efficient, because it would save time and avoid a re-occurring API call. __UPDATE:__ There is a D-Bus signal implemented in this API
-*   For Qt, there is already a patch available that provides this information as a base class property. See https://codereview.qt-project.org/#/c/176211/ This would be optimal for Qt widget applications. But not useful for other languages, e.g. Java. __UPDATE:__ This patch got reverted in AGL!
+ - The homescreen API will provide a signal that is emitted every time the visible status of surfaces changes. This would be way more efficient, because it would save time and avoid a re-occurring API call. __UPDATE:__ There is a D-Bus signal implemented in this API
+ - For Qt, there is already a patch available that provides this information as a base class property. See https://codereview.qt-project.org/#/c/176211/ This would be optimal for Qt widget applications. But not useful for other languages, e.g. Java. __UPDATE:__ This patch got reverted in AGL!
 
 #### Current implementation
  
-![AGL HVAC](pictures/api_getSurfaceStatus_1.png)
+![getSurfaceStatus](pictures/api_getSurfaceStatus_1.png)
  
 #### Option 1
 
-![AGL HVAC](pictures/api_getSurfaceStatus_2.png)
+![getSurfaceStatus](pictures/api_getSurfaceStatus_2.png)
 
 #### Option 2
 
-![AGL HVAC](pictures/api_getSurfaceStatus_3.png)
+![getSurfaceStatus](pictures/api_getSurfaceStatus_3.png)
 
 ### requestSurfaceIdToFullScreen
 
@@ -117,7 +117,7 @@ This function will set the given surface to full screen.
 
 It will hide all other surfaces.
 
-![AGL HVAC](pictures/api_requestSurfaceIdToFullScreen.png)
+![requestSurfaceIdToFullScreen](pictures/api_requestSurfaceIdToFullScreen.png)
  
 ### getAllSurfacesOfProcess
 
@@ -133,7 +133,7 @@ This returns all surfaces that are created by the given process ID.
 
 A process can create more than one surface. By default, the surface with the lowest surface ID is shown on the screen. If an application wants to know all surfaces that were created by an application, this method will provide them.
 
-![AGL HVAC](pictures/api_getAllSurfacesOfProcess.png)
+![getAllSurfacesOfProcess](pictures/api_getAllSurfacesOfProcess.png)
 
 ### renderSurfaceToAreaAllowed
 
@@ -149,7 +149,7 @@ Before calling renderSurfaceToArea, an application can request, if it is allowed
 
 The call will not affect the current setup, it will only request if it is allowed or not.
 
-![AGL HVAC](pictures/api_renderSurfaceToAreaAllowed.png)
+![renderSurfaceToAreaAllowed](pictures/api_renderSurfaceToAreaAllowed.png)
 
 ### renderSurfaceToArea
 
@@ -164,7 +164,7 @@ By default, the HomeScreen application decides, where to render an applications 
 
 The surface that was previously rendered in this Layout are will be hidden.
 
-![AGL HVAC](pictures/api_renderSurfaceToArea.png)
+![renderSurfaceToArea](pictures/api_renderSurfaceToArea.png)
 
 The homescreen interface functionality is not fully implemented, but the API is available. For example using the libhomescreen.so.
 
@@ -182,4 +182,4 @@ Whenever the visibility property of a surface changes, this signal is emitted.
 Visibility here means visible. The name of the signal is from the Weston surface property “visibility”.
 See here for reference: https://github.com/ntanibata/wayland-ivi-extension/blob/master/ivi-layermanagement-api/ilmCommon/include/ilm_types.h
  
-![AGL HVAC](pictures/api_surfaceVisibilityChanged.png)
+![surfaceVisibilityChanged](pictures/api_surfaceVisibilityChanged.png)
