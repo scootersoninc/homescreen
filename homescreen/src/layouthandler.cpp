@@ -234,6 +234,7 @@ int LayoutHandler::requestGetSurfaceStatus(int surfaceId)
 void LayoutHandler::requestRenderSurfaceToArea(int surfaceId, int layoutArea)
 {
     qDebug("requestRenderSurfaceToArea %d %d", surfaceId, layoutArea);
+    mp_dBusWindowManagerProxy->setSurfaceToLayoutArea(surfaceId, layoutArea);
 }
 
 bool LayoutHandler::requestRenderSurfaceToAreaAllowed(int surfaceId, int layoutArea)
