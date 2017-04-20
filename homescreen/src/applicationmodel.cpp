@@ -18,6 +18,8 @@
 #include "applicationmodel.h"
 #include "appinfo.h"
 
+#include <QtCore/QDebug>
+
 #include <QtDBus/QDBusInterface>
 #include <QtDBus/QDBusReply>
 
@@ -33,23 +35,36 @@ public:
     QList<AppInfo> data;
 };
 
+namespace {
+    // This is a disgrace, shouldn't we be having a defined way to know which icon (if it is not given by the getAvailableApps() reply)?
+    QString get_icon_name(AppInfo const &i)
+    {
+        QString icon = i.iconPath().isEmpty() ? i.id().split("@").front() : i.iconPath();
+        if (icon == "hvac" || icon == "poi") {
+            icon = icon.toUpper();
+        } else if (icon == "mediaplayer") {
+            icon = "Multimedia";
+        } else {
+            icon[0] = icon[0].toUpper();
+        }
+        return icon;
+    }
+}
+
 ApplicationModel::Private::Private(ApplicationModel *parent)
     : q(parent)
     , proxy(QStringLiteral("org.agl.homescreenappframeworkbinder"), QStringLiteral("/AppFramework"), QStringLiteral("org.agl.appframework"), QDBusConnection::sessionBus())
 {
     QDBusReply<QList<AppInfo>> reply = proxy.call("getAvailableApps");
-    if (false)/*reply.isValid()) TODO: test for CES!  */ {
-        data = reply.value();
+    if (reply.isValid()) {
+        // FIXME: Is the order from dbus the one we want to use?!
+        for (auto const &i: reply.value()) {
+            auto const name = i.name().split(" ").front().toUpper();
+            auto const icon = get_icon_name(i);
+            data.append(AppInfo(icon, name, i.id()));
+        }
     } else {
-        data.append(AppInfo(QStringLiteral("HVAC"), QStringLiteral("HVAC"), QStringLiteral("hvac@0.1")));
-        data.append(AppInfo(QStringLiteral("Navigation"), QStringLiteral("NAVIGATION"), QStringLiteral("navigation@0.1")));
-        data.append(AppInfo(QStringLiteral("Phone"), QStringLiteral("PHONE"), QStringLiteral("phone@0.1")));
-        data.append(AppInfo(QStringLiteral("Radio"), QStringLiteral("RADIO"), QStringLiteral("radio@0.1")));
-        data.append(AppInfo(QStringLiteral("Multimedia"), QStringLiteral("MULTIMEDIA"), QStringLiteral("mediaplayer@0.1")));
-        data.append(AppInfo(QStringLiteral("Mixer"), QStringLiteral("MIXER"), QStringLiteral("mixer@0.1")));
-        data.append(AppInfo(QStringLiteral("Dashboard"), QStringLiteral("DASHBOARD"), QStringLiteral("dashboard@0.1")));
-        data.append(AppInfo(QStringLiteral("Settings"), QStringLiteral("SETTINGS"), QStringLiteral("settings@0.1")));
-        data.append(AppInfo(QStringLiteral("POI"), QStringLiteral("POINT OF\nINTEREST"), QStringLiteral("poi@0.1")));
+        qDebug() << "getAvailableApps() reply is INVALID!";
     }
 }
 
