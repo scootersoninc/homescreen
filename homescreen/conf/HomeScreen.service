@@ -5,7 +5,6 @@ After=dbus.service afm-user-daemon.service InputEventManager.service HomeScreenA
 ConditionKernelCommandLine=!agl.nogfx
 
 [Service]
-User=root
 Type=dbus
 BusName=org.agl.homescreen
 ExecStart=/usr/AGL/homescreen/HomeScreen
