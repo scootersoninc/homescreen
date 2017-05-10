@@ -27,13 +27,36 @@
 #include "statusbarmodel.h"
 #include "applicationmodel.h"
 
+#include "afm_user_daemon_proxy.h"
+
+// XXX: We want this DBus connection to be shared across the different
+// QML objects, is there another way to do this, a nice way, perhaps?
+org::AGL::afm::user *afm_user_daemon_proxy;
+
+namespace {
+
+struct Cleanup {
+    static inline void cleanup(org::AGL::afm::user *p) {
+        delete p;
+        afm_user_daemon_proxy = Q_NULLPTR;
+    }
+};
+
 void noOutput(QtMsgType, const QMessageLogContext &, const QString &)
 {
+}
+
 }
 
 int main(int argc, char *argv[])
 {
     QGuiApplication a(argc, argv);
+
+    QScopedPointer<org::AGL::afm::user, Cleanup> afm_user_daemon_proxy(new org::AGL::afm::user("org.AGL.afm.user",
+                                                                                               "/org/AGL/afm/user",
+                                                                                               QDBusConnection::sessionBus(),
+                                                                                               0));
+    ::afm_user_daemon_proxy = afm_user_daemon_proxy.data();
 
     QCoreApplication::setOrganizationDomain("LinuxFoundation");
     QCoreApplication::setOrganizationName("AutomotiveGradeLinux");
