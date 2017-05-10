@@ -19,8 +19,6 @@
 #define APPLICATIONLAUNCHER_H
 
 #include <QtCore/QObject>
-#include <include/appframework.hpp>
-#include <appframework_proxy.h>
 
 class ApplicationLauncher : public QObject
 {
@@ -28,7 +26,6 @@ class ApplicationLauncher : public QObject
     Q_PROPERTY(QString current READ current WRITE setCurrent NOTIFY currentChanged)
 public:
     explicit ApplicationLauncher(QObject *parent = NULL);
-    ~ApplicationLauncher();
 
     QString current() const;
 
@@ -41,7 +38,6 @@ public slots:
     void setCurrent(const QString &current);
 
 private:
-    org::agl::appframework *mp_dBusAppFrameworkProxy;
     QString m_current;
 };
 

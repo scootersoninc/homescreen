@@ -17,22 +17,15 @@
 
 #include "applicationlauncher.h"
 
+#include "afm_user_daemon_proxy.h"
+
 #include <QtCore/QDebug>
 
-ApplicationLauncher::ApplicationLauncher(QObject *parent)
-    : QObject(parent),
-    mp_dBusAppFrameworkProxy()
-{
-    qDebug("D-Bus: connect to org.agl.homescreenappframeworkbinder /AppFramework");
-    mp_dBusAppFrameworkProxy = new org::agl::appframework("org.agl.homescreenappframeworkbinder",
-                                              "/AppFramework",
-                                              QDBusConnection::sessionBus(),
-                                              0);
-}
+extern org::AGL::afm::user *afm_user_daemon_proxy;
 
-ApplicationLauncher::~ApplicationLauncher()
+ApplicationLauncher::ApplicationLauncher(QObject *parent)
+    : QObject(parent)
 {
-    delete mp_dBusAppFrameworkProxy;
 }
 
 int ApplicationLauncher::launch(const QString &application)
@@ -40,12 +33,13 @@ int ApplicationLauncher::launch(const QString &application)
     int result = -1;
     qDebug() << "launch" << application;
 
-    result = mp_dBusAppFrameworkProxy->launchApp(application);
+    result = afm_user_daemon_proxy->start(application).value().toInt();
     qDebug() << "pid:" << result;
 
     if (result > 1) {
         setCurrent(application);
     }
+
     return result;
 }
 
