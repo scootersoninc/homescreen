@@ -26,7 +26,7 @@
 #include "applicationlauncher.h"
 #include "statusbarmodel.h"
 #include "applicationmodel.h"
-
+#include "appinfo.h"
 #include "afm_user_daemon_proxy.h"
 
 // XXX: We want this DBus connection to be shared across the different

@@ -14,30 +14,21 @@
  * limitations under the License.
  */
 
+#include "afm_user_daemon_proxy.h"
 #include "homescreencontrolinterface.h"
+
+extern org::AGL::afm::user *afm_user_daemon_proxy;
 
 HomeScreenControlInterface::HomeScreenControlInterface(QObject *parent) :
     QObject(parent),
-    mp_homeScreenAdaptor(0),
-    mp_dBusAppFrameworkProxy()
+    mp_homeScreenAdaptor(0)
 {
     // publish dbus homescreen interface
     mp_homeScreenAdaptor = new HomescreenAdaptor((QObject*)this);
+
     QDBusConnection dbus = QDBusConnection::sessionBus();
     dbus.registerObject("/HomeScreen", this);
     dbus.registerService("org.agl.homescreen");
-
-    qDebug("D-Bus: connect to org.agl.homescreenappframeworkbindertizen /AppFramework");
-    mp_dBusAppFrameworkProxy = new org::agl::appframework("org.agl.homescreenappframeworkbindertizen",
-                                              "/AppFramework",
-                                              QDBusConnection::sessionBus(),
-                                              0);
-}
-
-HomeScreenControlInterface::~HomeScreenControlInterface()
-{
-    delete mp_dBusAppFrameworkProxy;
-    delete mp_homeScreenAdaptor;
 }
 
 QList<int> HomeScreenControlInterface::getAllSurfacesOfProcess(int pid)
@@ -60,13 +51,13 @@ void HomeScreenControlInterface::hardKeyPressed(int key)
     {
     case InputEvent::HARDKEY_NAV:
         qDebug("hardKeyPressed NAV key pressed!");
-        pid = mp_dBusAppFrameworkProxy->launchApp("navigation@0.1");
+        pid = afm_user_daemon_proxy->start("navigation@0.1").value().toInt();
         qDebug("pid: %d", pid);
         emit newRequestsToBeVisibleApp(pid);
         break;
     case InputEvent::HARDKEY_MEDIA:
         qDebug("hardKeyPressed MEDIA key pressed!");
-        pid = mp_dBusAppFrameworkProxy->launchApp("media@0.1");
+        pid = afm_user_daemon_proxy->start("media@0.1").value().toInt();
         qDebug("pid: %d", pid);
         emit newRequestsToBeVisibleApp(pid);
         break;
