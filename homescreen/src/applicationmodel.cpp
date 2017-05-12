@@ -23,23 +23,22 @@
 #include <QtDBus/QDBusInterface>
 #include <QtDBus/QDBusReply>
 
+#include "afm_user_daemon_proxy.h"
+
+extern org::AGL::afm::user *afm_user_daemon_proxy;
+
 class ApplicationModel::Private
 {
 public:
-    Private(ApplicationModel *parent);
+    Private();
 
-private:
-    ApplicationModel *q;
-public:
-    QDBusInterface proxy;
     QList<AppInfo> data;
 };
 
 namespace {
-    // This is a disgrace, shouldn't we be having a defined way to know which icon (if it is not given by the getAvailableApps() reply)?
-    QString get_icon_name(AppInfo const &i)
+    QString get_icon_name(QJsonObject const &i)
     {
-        QString icon = i.iconPath().isEmpty() ? i.id().split("@").front() : i.iconPath();
+        QString icon = i["id"].toString().split("@").front();
         if (icon == "hvac" || icon == "poi") {
             icon = icon.toUpper();
         } else if (icon == "mediaplayer") {
@@ -51,32 +50,29 @@ namespace {
     }
 }
 
-ApplicationModel::Private::Private(ApplicationModel *parent)
-    : q(parent)
-    , proxy(QStringLiteral("org.agl.homescreenappframeworkbinder"), QStringLiteral("/AppFramework"), QStringLiteral("org.agl.appframework"), QDBusConnection::sessionBus())
+ApplicationModel::Private::Private()
 {
-    QDBusReply<QList<AppInfo>> reply = proxy.call("getAvailableApps");
-    if (reply.isValid()) {
-        // FIXME: Is the order from dbus the one we want to use?!
-        for (auto const &i: reply.value()) {
-            auto const name = i.name().split(" ").front().toUpper();
-            auto const icon = get_icon_name(i);
-            data.append(AppInfo(icon, name, i.id()));
-        }
-    } else {
-        qDebug() << "getAvailableApps() reply is INVALID!";
+    QString apps = afm_user_daemon_proxy->runnables(QStringLiteral(""));
+    QJsonDocument japps = QJsonDocument::fromJson(apps.toUtf8());
+    for (auto const &app : japps.array()) {
+        QJsonObject const &jso = app.toObject();
+        auto const name = jso["name"].toString();
+        auto const id = jso["id"].toString();
+        auto const icon = get_icon_name(jso);
+        this->data.append(AppInfo(icon, name, id));
+        qDebug() << "name:" << name << "icon:" << icon << "id:" << id;
     }
 }
 
 ApplicationModel::ApplicationModel(QObject *parent)
     : QAbstractListModel(parent)
-    , d(new Private(this))
+    , d(new Private())
 {
 }
 
 ApplicationModel::~ApplicationModel()
 {
-    delete d;
+    delete this->d;
 }
 
 int ApplicationModel::rowCount(const QModelIndex &parent) const
@@ -84,7 +80,7 @@ int ApplicationModel::rowCount(const QModelIndex &parent) const
     if (parent.isValid())
         return 0;
 
-    return d->data.count();
+    return this->d->data.count();
 }
 
 QVariant ApplicationModel::data(const QModelIndex &index, int role) const
@@ -95,13 +91,13 @@ QVariant ApplicationModel::data(const QModelIndex &index, int role) const
 
     switch (role) {
     case Qt::DecorationRole:
-        ret = d->data[index.row()].iconPath();
+        ret = this->d->data[index.row()].iconPath();
         break;
     case Qt::DisplayRole:
-        ret = d->data[index.row()].name();
+        ret = this->d->data[index.row()].name();
         break;
     case Qt::UserRole:
-        ret = d->data[index.row()].id();
+        ret = this->d->data[index.row()].id();
         break;
     default:
         break;
