@@ -25,6 +25,7 @@ SOURCES += src/appframework.cpp \
     src/windowmanager.cpp
 
 XMLSOURCES = \
+    afm_user_daemon.xml \
     appframework.xml \
     daynightmode.xml \
     homescreen.xml \
@@ -63,3 +64,5 @@ gen_proxy_h.output = ${QMAKE_FILE_IN_BASE}_proxy.h
 gen_proxy_h.clean = ${QMAKE_FILE_IN_BASE}_proxy.h
 
 QMAKE_EXTRA_COMPILERS += gen_adaptor_cpp gen_proxy_cpp gen_adaptor_h gen_proxy_h
+
+DISTFILES +=
