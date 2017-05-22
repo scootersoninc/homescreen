@@ -15,7 +15,8 @@
 TEMPLATE = app
 TARGET = HomeScreen
 QT = qml quick dbus
-CONFIG += c++11
+CONFIG += c++11 link_pkgconfig
+PKGCONFIG += libpulse
 
 include(../interfaces/interfaces.pri)
 
@@ -27,7 +28,9 @@ SOURCES += \
     src/appinfo.cpp \
     src/statusbarmodel.cpp \
     src/statusbarserver.cpp \
-    src/applicationlauncher.cpp
+    src/applicationlauncher.cpp \
+    src/mastervolume.cpp \
+    src/paclient.cpp
 
 HEADERS  += \
     src/homescreencontrolinterface.h \
@@ -36,7 +39,9 @@ HEADERS  += \
     src/statusbarserver.h \
     src/applicationlauncher.h \
     src/applicationmodel.h \
-    src/appinfo.h
+    src/appinfo.h \
+    src/mastervolume.h \
+    src/paclient.h
 
 OTHER_FILES += \
     README.md
