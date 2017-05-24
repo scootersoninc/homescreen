@@ -31,6 +31,7 @@ Item {
     property int pid: -1
 
     GridView {
+        id: grid
         anchors.centerIn: parent
         width: cellHeight * 3
         height: cellHeight * 3
@@ -38,27 +39,41 @@ Item {
         cellHeight: 320
         interactive: false
 
-        model: ApplicationModel {}
-        delegate: MouseArea {
-            width: 320
-            height: 320
-            Image {
-                anchors.fill: parent
-                source: './images/HMI_AppLauncher_%1_%2-01.png'.arg(model.icon).arg(pressed ? 'Active' : 'Inactive')
-            }
-            onClicked: {
-                console.log("app is ", model.id)
-                pid = launcher.launch(model.id)
-                if (1 < pid) {
-                    layoutHandler.makeMeVisible(pid)
+        model: ApplicationModel { id: applicationModel }
+        delegate: IconItem {
+            width: grid.cellWidth
+            height: grid.cellHeight
+        }
 
-                    applicationArea.visible = true
-                    appLauncherAreaLauncher.visible = false
-                    layoutHandler.showAppLayer(pid)
+        MouseArea {
+            id: loc
+            anchors.fill: parent
+            property string currentId: ''
+            property int newIndex: -1
+            property int index: grid.indexAt(loc.mouseX, loc.mouseY)
+            onPressAndHold: currentId = applicationModel.id(newIndex = index)
+            onReleased: {
+                if (currentId === '') {
+                    pid = launcher.launch(applicationModel.id(loc.index))
+                    if (1 < pid) {
+                        layoutHandler.makeMeVisible(pid)
+
+                        applicationArea.visible = true
+                        appLauncherAreaLauncher.visible = false
+                        layoutHandler.showAppLayer(pid)
+                    }
+                    else {
+                        console.warn("app cannot be launched!")
+                    }
+                } else {
+                    currentId = ''
                 }
-                else {
-                    console.warn("app cannot be launched!")
-                }
+            }
+            onPositionChanged: {
+                if (loc.currentId === '') return
+                if (index < 0) return
+                if (index === newIndex) return
+                    applicationModel.move(newIndex, newIndex = index)
             }
         }
     }
