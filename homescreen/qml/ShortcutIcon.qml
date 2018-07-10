@@ -16,6 +16,8 @@
  */
 
 import QtQuick 2.2
+import QtQuick.Controls 2.0
+import QtGraphicalEffects 1.0
 
 MouseArea {
     id: root
@@ -23,22 +25,61 @@ MouseArea {
     height: 216.8
     property string name: 'Home'
     property bool active: false
-    Image {
+    Item {
         id: icon
+        property real desaturation: 0
         anchors.fill: parent
-        source: './images/Shortcut/HMI_Shortcut_%1-01.png'.arg(root.name)
+        Image {
+            id: inactiveIcon
+            anchors.fill: parent
+                     source: './images/Shortcut/%1.svg'.arg(root.name.toLowerCase())
+        }
+        Image {
+            id: activeIcon
+            anchors.fill: parent
+            source: './images/Shortcut/%1_active.svg'.arg(root.name.toLowerCase())
+            opacity: 0.0
+        }
+        layer.enabled: true
+        layer.effect: Desaturate {
+            id: desaturate
+            desaturation: icon.desaturation
+            cached: true
+        }
     }
-    Image {
-        anchors.fill: parent
-        source: './images/Shortcut/HMI_Shortcut_%1_Active-01.png'.arg(root.name)
-        opacity: 1.0 - icon.opacity
+    Label {
+        id: name
+        y: 160
+        width: root.width - 10
+        font.pixelSize: 15
+        font.letterSpacing: 5
+        // wrapMode: Text.WordWrap
+        anchors.horizontalCenter: parent.horizontalCenter
+        horizontalAlignment: Text.AlignHCenter
+        color: "white"
+        text: qsTr(model.name.toUpperCase())
     }
     states: [
         State {
-            when: root.active
+            when: launcher.launching
+            PropertyChanges {
+                target: root
+                enabled: false
+            }
             PropertyChanges {
                 target: icon
+                desaturation: 1.0
+            }
+        },
+        State {
+            when: root.active
+            PropertyChanges {
+                target: inactiveIcon
                 opacity: 0.0
+            }
+            PropertyChanges {
+                target: activeIcon
+                opacity: 1.0
             }
         }
     ]
@@ -47,7 +88,12 @@ MouseArea {
         Transition {
             NumberAnimation {
                 properties: 'opacity'
+                duration: 500
                 easing.type: Easing.OutExpo
+            }
+            NumberAnimation {
+                properties: 'desaturation'
+                duration: 250
             }
         }
     ]

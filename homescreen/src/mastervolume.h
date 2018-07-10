@@ -16,7 +16,6 @@
 
 #include <QtCore/QObject>
 #include <QQmlEngine>
-#include <QDebug>
 
 #include <pulse/pulseaudio.h>
 

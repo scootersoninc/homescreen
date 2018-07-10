@@ -17,7 +17,6 @@
 
 import QtQuick 2.2
 import QtQuick.Layouts 1.1
-import QtQuick.Controls 1.0
 import HomeScreen 1.0
 
 Item {
@@ -29,6 +28,30 @@ Item {
     Timer {
         interval: 100; running: true; repeat: true;
         onTriggered: root.now = new Date
+    }
+
+    Connections {
+        target: weather
+
+        onConditionChanged: {
+            var icon = ''
+
+            if (condition.indexOf("clouds") != -1) {
+                icon = "WeatherIcons_Cloudy-01.png"
+            } else if (condition.indexOf("thunderstorm") != -1) {
+                icon = "WeatherIcons_Thunderstorm-01.png"
+            } else if (condition.indexOf("snow") != -1) {
+                icon = "WeatherIcons_Snow-01.png"
+            } else if (condition.indexOf("rain") != -1) {
+                icon = "WeatherIcons_Rain-01.png"
+            }
+
+            condition_item.source = icon ? './images/Weather/' + icon : ''
+        }
+
+        onTemperatureChanged: {
+            temperature_item.text = temperature.split(".")[0] + '°F'
+        }
     }
 
     RowLayout {
@@ -74,9 +97,11 @@ Item {
                     Layout.fillHeight: true
                     Layout.preferredHeight: 20
                     Image {
+                        id: condition_item
                         source: './images/Weather/WeatherIcons_Rain-01.png'
                     }
                     Text {
+                        id: temperature_item
                         text: '64°F'
                         color: 'white'
                         font.family: 'Helvetica'

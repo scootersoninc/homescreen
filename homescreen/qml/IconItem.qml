@@ -1,13 +1,74 @@
 import QtQuick 2.0
+import QtQuick.Controls 2.0
+import QtGraphicalEffects 1.0
 
 Item {
     id: main
-    Image {
-        id: item; parent: loc
-        x: main.x + 5; y: main.y + 5
-        width: main.width - 10; height: main.height - 10;
-        source: './images/HMI_AppLauncher_%1_%2-01.png'.arg(model.icon).arg(loc.pressed && (loc.index === model.index || loc.currentId === model.id) ? 'Active' : 'Inactive')
-        antialiasing: item.state !== ''
+    width: 320
+    height: 320
+    property string icon: model.icon
+
+    Item {
+        id: container
+        parent: loc
+        x: main.x
+        y: main.y
+        width: main.width
+        height: main.height
+
+        Image {
+            id: item
+            anchors.top: parent.top
+            anchors.topMargin: 20
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: 220
+            height: width
+            source: './images/%1_%2.svg'.arg(model.icon).arg(loc.pressed && (loc.index === model.index || loc.currentId === model.id) ? 'active' : 'inactive')
+            antialiasing: item.state !== ''
+
+            property string initial: model.name.substring(0,1).toUpperCase()
+
+            Item {
+                id: title
+                width: 125
+                height: 125
+                anchors.centerIn: parent
+                Repeater {
+                    delegate: Label {
+                        style: Text.Outline
+                        styleColor: 'red'
+                        color: 'transparent'
+                        font.pixelSize: 125
+                        anchors.centerIn: parent
+                        anchors.horizontalCenterOffset: model.index / 3 - 1
+                        anchors.verticalCenterOffset: model.index % 3 - 1
+                        text: item.initial
+                    }
+                    model: main.icon === 'blank' ? 9 : 0
+                }
+                layer.enabled: true
+                layer.effect: LinearGradient {
+                    gradient: Gradient {
+                        GradientStop { position: -0.5; color: "#6BFBFF" }
+                        GradientStop { position: +1.5; color: "#00ADDC" }
+                    }
+                }
+            }
+        }
+        Label {
+            id: name
+            anchors.top: item.bottom
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.margins: 20
+            font.pixelSize: 25
+            font.letterSpacing: 5
+            wrapMode: Text.WordWrap
+            horizontalAlignment: Text.AlignHCenter
+            color: "white"
+            text: qsTr(model.name.toUpperCase())
+        }
+
         Behavior on x { enabled: item.state !== 'active'; NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
         Behavior on y { enabled: item.state !== 'active'; NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
         SequentialAnimation on rotation {
@@ -21,12 +82,18 @@ Item {
             State {
                 name: 'active'
                 when: loc.currentId == model.id
-                PropertyChanges { target: item; x: loc.mouseX - width/2; y: loc.mouseY - height/2; scale: 1.15; z: 10 }
+                PropertyChanges {
+                    target: container
+                    x: loc.mouseX - width/2
+                    y: loc.mouseY - height/2
+                    scale: 1.15
+                    z: 10
+                }
             },
             State {
                 when: loc.currentId !== ''
                 PropertyChanges {
-                    target: item
+                    target: container
                     scale: 0.85
                     opacity: 0.75
                 }

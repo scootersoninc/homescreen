@@ -17,6 +17,7 @@
 
 import QtQuick 2.2
 import QtQuick.Layouts 1.1
+import QtQuick.Controls 2.0
 
 Image {
     width: 1920
@@ -39,5 +40,20 @@ Image {
             Layout.fillHeight: true
             Layout.preferredWidth: 295
         }
+    }
+
+    Timer {
+        id: launching
+        interval: 500
+        running: launcher.launching
+    }
+
+    ProgressBar {
+        id: progressBar
+        anchors.verticalCenter: parent.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        indeterminate: visible
+        visible: launcher.launching && !launching.running
     }
 }

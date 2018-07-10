@@ -16,8 +16,6 @@
 
 #include "mastervolume.h"
 
-#include <QtCore/QDebug>
-
 void MasterVolume::setVolume(pa_volume_t volume)
 {
 	int volume_delta = volume - m_volume;

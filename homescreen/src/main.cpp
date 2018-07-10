@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016, 2017 Mentor Graphics Development (Deutschland) GmbH
+ * Copyright (c) 2017 TOYOTA MOTOR CORPORATION
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +21,16 @@
 #include <QtQml/QQmlApplicationEngine>
 #include <QtQml/QQmlContext>
 #include <QtQml/qqml.h>
+#include <QQuickWindow>
 
-#include "layouthandler.h"
-#include "homescreencontrolinterface.h"
+#include <qlibwindowmanager.h>
+#include <weather.h>
 #include "applicationlauncher.h"
 #include "statusbarmodel.h"
-#include "applicationmodel.h"
-#include "appinfo.h"
 #include "afm_user_daemon_proxy.h"
 #include "mastervolume.h"
-#include "paclient.h"
+#include "homescreenhandler.h"
+#include "hmi-debug.h"
 
 // XXX: We want this DBus connection to be shared across the different
 // QML objects, is there another way to do this, a nice way, perhaps?
@@ -54,6 +55,7 @@ int main(int argc, char *argv[])
 {
     QGuiApplication a(argc, argv);
 
+    // use launch process
     QScopedPointer<org::AGL::afm::user, Cleanup> afm_user_daemon_proxy(new org::AGL::afm::user("org.AGL.afm.user",
                                                                                                "/org/AGL/afm/user",
                                                                                                QDBusConnection::sessionBus(),
@@ -66,57 +68,80 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationVersion("0.7.0");
 
     QCommandLineParser parser;
-    parser.setApplicationDescription("AGL HomeScreen - see wwww... for more details");
+    parser.addPositionalArgument("port", a.translate("main", "port for binding"));
+    parser.addPositionalArgument("secret", a.translate("main", "secret for binding"));
     parser.addHelpOption();
     parser.addVersionOption();
-    QCommandLineOption quietOption(QStringList() << "q" << "quiet",
-        QCoreApplication::translate("main", "Be quiet. No outputs."));
-    parser.addOption(quietOption);
     parser.process(a);
+    QStringList positionalArguments = parser.positionalArguments();
+    
+    int port = 1700;
+    QString token = "wm";
 
-    if (parser.isSet(quietOption))
-    {
-        qInstallMessageHandler(noOutput);
+    if (positionalArguments.length() == 2) {
+        port = positionalArguments.takeFirst().toInt();
+        token = positionalArguments.takeFirst();
     }
 
-    // Fire up PA client QThread
-    QThread* pat = new QThread;
-    PaClient* client = new PaClient();
-    client->moveToThread(pat);
-    pat->start();
+    HMI_DEBUG("HomeScreen","port = %d, token = %s", port, token.toStdString().c_str());
 
-    qDBusRegisterMetaType<AppInfo>();
-    qDBusRegisterMetaType<QList<AppInfo> >();
-
-    qmlRegisterType<ApplicationLauncher>("HomeScreen", 1, 0, "ApplicationLauncher");
-    qmlRegisterType<ApplicationModel>("Home", 1, 0, "ApplicationModel");
+    // import C++ class to QML
+    // qmlRegisterType<ApplicationLauncher>("HomeScreen", 1, 0, "ApplicationLauncher");
     qmlRegisterType<StatusBarModel>("HomeScreen", 1, 0, "StatusBarModel");
     qmlRegisterType<MasterVolume>("MasterVolume", 1, 0, "MasterVolume");
 
+    ApplicationLauncher *launcher = new ApplicationLauncher();
+    QLibWindowmanager* layoutHandler = new QLibWindowmanager();
+    if(layoutHandler->init(port,token) != 0){
+        exit(EXIT_FAILURE);
+    }
+
+    if (layoutHandler->requestSurface(QString("HomeScreen")) != 0) {
+        exit(EXIT_FAILURE);
+    }
+
+    layoutHandler->set_event_handler(QLibWindowmanager::Event_SyncDraw, [layoutHandler](json_object *object) {
+        layoutHandler->endDraw(QString("HomeScreen"));
+    });
+
+    layoutHandler->set_event_handler(QLibWindowmanager::Event_ScreenUpdated, [layoutHandler, launcher](json_object *object) {
+        json_object *jarray = json_object_object_get(object, "ids");
+        int arrLen = json_object_array_length(jarray);
+        for( int idx = 0; idx < arrLen; idx++)
+        {
+            QString label = QString(json_object_get_string(	json_object_array_get_idx(jarray, idx) ));
+            HMI_DEBUG("HomeScreen","Event_ScreenUpdated application: %s.", label.toStdString().c_str());
+            QMetaObject::invokeMethod(launcher, "setCurrent", Qt::QueuedConnection, Q_ARG(QString, label));
+        }
+    });
+
+    HomescreenHandler* homescreenHandler = new HomescreenHandler();
+    homescreenHandler->init(port, token.toStdString().c_str());
+
+    QUrl bindingAddress;
+    bindingAddress.setScheme(QStringLiteral("ws"));
+    bindingAddress.setHost(QStringLiteral("localhost"));
+    bindingAddress.setPort(port);
+    bindingAddress.setPath(QStringLiteral("/api"));
+
+    QUrlQuery query;
+    query.addQueryItem(QStringLiteral("token"), token);
+    bindingAddress.setQuery(query);
+
+    // mail.qml loading
     QQmlApplicationEngine engine;
-
-    LayoutHandler* layoutHandler = new LayoutHandler();
-
-    HomeScreenControlInterface* hsci = new HomeScreenControlInterface();
-
-    QObject::connect(hsci, SIGNAL(newRequestGetSurfaceStatus(int)), layoutHandler, SLOT(requestGetSurfaceStatus(int)));
-    QObject::connect(hsci, SIGNAL(newRequestsToBeVisibleApp(int)), layoutHandler, SLOT(makeMeVisible(int)));
-    QObject::connect(hsci, SIGNAL(newRequestRenderSurfaceToArea(int, int)), layoutHandler, SLOT(requestRenderSurfaceToArea(int,int)));
-    QObject::connect(hsci, SIGNAL(newRequestRenderSurfaceToAreaAllowed(int, int)), layoutHandler, SLOT(requestRenderSurfaceToAreaAllowed(int,int)));
-    QObject::connect(hsci, SIGNAL(newRequestSurfaceIdToFullScreen(int)), layoutHandler, SLOT(requestSurfaceIdToFullScreen(int)));
-
     engine.rootContext()->setContextProperty("layoutHandler", layoutHandler);
-
+    engine.rootContext()->setContextProperty("homescreenHandler", homescreenHandler);
+    engine.rootContext()->setContextProperty("launcher", launcher);
+    engine.rootContext()->setContextProperty("weather", new Weather(bindingAddress));
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
-    QList<QObject *> mobjs = engine.rootObjects();
-    MasterVolume *mv = mobjs.first()->findChild<MasterVolume *>("mv");
-    engine.rootContext()->setContextProperty("MasterVolume", mv);
-    QObject::connect(mv, SIGNAL(sliderVolumeChanged(int)), client, SLOT(incDecVolume(int)));
-    QObject::connect(client, SIGNAL(volumeExternallyChanged(int)), mv, SLOT(changeExternalVolume(int)));
+    QObject *root = engine.rootObjects().first();
+    QQuickWindow *window = qobject_cast<QQuickWindow *>(root);
+    QObject::connect(window, SIGNAL(frameSwapped()), layoutHandler, SLOT(slotActivateSurface()));
 
-    // Initalize PA client
-    client->init();
+    // start homescreen appplications
+    launcher->launch("launcher@0.1");   //Launcher
 
     return a.exec();
 }

@@ -18,22 +18,15 @@ QT = dbus
 CONFIG += staticlib
 
 HEADERS += \
-    include/appframework.hpp \
-    include/windowmanager.hpp
+    include/appframework.hpp
 
-SOURCES += src/appframework.cpp \
-    src/windowmanager.cpp
+SOURCES += \
+    src/appframework.cpp
 
 XMLSOURCES = \
     afm_user_daemon.xml \
     appframework.xml \
-    daynightmode.xml \
-    homescreen.xml \
-    inputevent.xml \
-    popup.xml \
-    proximity.xml \
-    statusbar.xml \
-    windowmanager.xml
+    statusbar.xml
 
 gen_adaptor_cpp.input = XMLSOURCES
 gen_adaptor_cpp.commands = \

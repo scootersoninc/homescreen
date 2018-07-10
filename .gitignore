@@ -122,4 +122,6 @@ CMakeLists.txt.user
 *.out
 *.app
 
+build/
+
 

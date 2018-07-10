@@ -42,7 +42,7 @@ Image {
     Image {
     id: logo_image
         anchors.centerIn: parent
-        source: './images/Utility_Logo_Colour-01.png'
+        source: './images/Utility_Logo_Grey-01.svg'
     }
 
     Timer {
@@ -84,7 +84,7 @@ Image {
             font.pixelSize: 36
             anchors.horizontalCenter: parent.horizontalCenter
             color: "white"
-            text: "Master Volume"
+            text: qsTr("Master Volume")
         }
 
         RowLayout {
@@ -109,20 +109,6 @@ Image {
                 onPressedChanged: {
                     if (pressed) {volume_timer.stop()}
                     else {volume_timer.restart()}
-                }
-                background: Rectangle {
-                    id: slider_bg
-                    height: 16
-                    color: "#59FF7F"
-                }
-                handle: Rectangle {
-                    anchors.verticalCenter: slider_bg.verticalCenter
-                    width: 48
-                    height: 48
-                    radius: 24
-                    x: slider.leftPadding + slider.visualPosition * (slider.availableWidth - width)
-                    y: slider.topPadding + slider.availableHeight / 2 - height / 2
-                    color: "white"
                 }
             }
             Label {

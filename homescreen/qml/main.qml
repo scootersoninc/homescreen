@@ -27,17 +27,13 @@ Window {
     height: container.height * container.scale
     title: 'HomeScreen'
 
-    ApplicationLauncher {
-        id: launcher
-    }
-
     Image {
         id: container
         anchors.centerIn: parent
         width: 1080
         height: 1920
         scale: 1.0
-        source: './images/AGL_HMI_Background_NoCar-01.png'
+        source: './images/AGL_HMI_Blue_Background_NoCar-01.png'
 
         ColumnLayout {
             anchors.fill: parent
@@ -54,14 +50,6 @@ Window {
                 Layout.fillHeight: true
                 Layout.preferredHeight: 1920 - 218 - 215
 
-                visible: false
-            }
-
-            Home {
-                id: appLauncherAreaLauncher
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Layout.preferredHeight: 1920 - 218 - 215
                 visible: true
             }
 

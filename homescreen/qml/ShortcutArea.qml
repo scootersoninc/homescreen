@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2016 The Qt Company Ltd.
  * Copyright (C) 2016, 2017 Mentor Graphics Development (Deutschland) GmbH
+ * Copyright (c) 2017 TOYOTA MOTOR CORPORATION
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,11 +28,11 @@ Item {
     ListModel {
         id: applicationModel
         ListElement {
-            name: 'Home'
-            application: ''
+            name: 'launcher'
+            application: 'launcher@0.1'
         }
         ListElement {
-            name: 'Multimedia'
+            name: 'MediaPlayer'
             application: 'mediaplayer@0.1'
         }
         ListElement {
@@ -55,26 +56,17 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 name: model.name
-                active: model.application === launcher.current
+                active: model.name === launcher.current
                 onClicked: {
-                    if (0 === model.index) {
-                        appLauncherAreaLauncher.visible = true
-                        applicationArea.visible = false
-                        layoutHandler.hideAppLayer()
-                        launcher.current = ''
+                    pid = launcher.launch(model.application)
+                    if (1 < pid) {
+                        applicationArea.visible = true
                     }
                     else {
-                        pid = launcher.launch(model.application)
-                        if (1 < pid) {
-                            applicationArea.visible = true
-                            appLauncherAreaLauncher.visible = false
-                            layoutHandler.makeMeVisible(pid)
-                            layoutHandler.showAppLayer(model.application, pid)
-                        }
-                        else {
-                            console.warn("app cannot be launched!")
-                        }
+                        console.warn(model.application)
+                        console.warn("app cannot be launched!")
                     }
+                    homescreenHandler.tapShortcut(model.name)
                 }
             }
         }

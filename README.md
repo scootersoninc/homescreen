@@ -1,36 +1,44 @@
 This project contains:
 
 HomeScreen: AGL Home Screen reference implementation
-HomeScreenSimulator: AGL Home Screen Simulator for development
-SampleAppTimeDate: AGL Sample Application for Home Screen Statusbar
 
-AGL repo for source code:
-https://gerrit.automotivelinux.org/gerrit/gitweb?p=staging%2FHomeScreen.git
+**AGL repo for source code**
 
-AGL repo for bitbake recipe:
-https://gerrit.automotivelinux.org/gerrit/gitweb?p=AGL/meta-agl-demo.git;a=blob;f=recipes-demo-hmi/homescreen/homescreen_git.bb
+```
+$ mkdir WORK
+$ cd WORK
+$ repo init -b dab -m dab_4.0.0_xml -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo
+$ repo sync
+$ git clone git clone https://gerrit.automotivelinux.org/gerrit/staging/meta-hmi-framework
+
+```
+
+Then you can get the following recipe.
+
+* `meta-agl-demo/recipes-demo-hmi/homescreen`
 
 
+**Bitbake**
 
-
-Quickstart:
+```
+$ source meta-agl/scripts/aglsetup.sh -m m3ulcb agl-demo agl-devel agl-appfw-smack agl-hmi-framework
+$ bitbake homescreen
+```
 
 Instructions for building HomeScreen app
 ----------------------------------------
 
-The HomeScreen app is part of the 
+The HomeScreen app is part of the
 packagegroup-agl-demo-platform
 packagegroup.
 
 This also includes the following apps:
-- HomeScreenAppFrameworkBinderAGL
-- InputEventManager
-- SampleHomeScreenInterfaceApp
 - WindowManager
-
+- HomeScreen Binder
 
 And the library
 - libhomescreen
+- libwindowmanager
 
 
 To build all the above, follow the instrucions on the AGL
@@ -39,3 +47,12 @@ http://docs.automotivelinux.org/docs/getting_started/en/dev/reference/source-cod
 
 Please activate the "agl-demo" feature when running the aglsetup script:
 http://docs.automotivelinux.org/docs/getting_started/en/dev/reference/source-code.html#features-supported-by-aglsetup
+
+
+Launch HomeScreen App:
+
+Usage:
+
+```
+afm-util start homescreen
+```

@@ -1,4 +1,5 @@
 # Copyright (C) 2016, 2017 Mentor Graphics Development (Deutschland) GmbH
+# Copyright (c) 2017 TOYOTA MOTOR CORPORATION
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,40 +15,34 @@
 
 TEMPLATE = app
 TARGET = HomeScreen
-QT = qml quick dbus
+QT = qml quick dbus websockets
 CONFIG += c++11 link_pkgconfig
-PKGCONFIG += libpulse
+DESTDIR = $${OUT_PWD}/../package/root/bin
+PKGCONFIG += qlibwindowmanager qtappfw
+
+LIBS += -lhomescreen
 
 include(../interfaces/interfaces.pri)
 
 SOURCES += \
     src/main.cpp \
-    src/homescreencontrolinterface.cpp \
-    src/layouthandler.cpp \
-    src/applicationmodel.cpp \
-    src/appinfo.cpp \
     src/statusbarmodel.cpp \
     src/statusbarserver.cpp \
     src/applicationlauncher.cpp \
     src/mastervolume.cpp \
-    src/paclient.cpp
+    src/homescreenhandler.cpp
 
 HEADERS  += \
-    src/homescreencontrolinterface.h \
-    src/layouthandler.h \
     src/statusbarmodel.h \
     src/statusbarserver.h \
     src/applicationlauncher.h \
-    src/applicationmodel.h \
-    src/appinfo.h \
     src/mastervolume.h \
-    src/paclient.h
+    src/homescreenhandler.h
 
 OTHER_FILES += \
     README.md
 
 RESOURCES += \
-    qml/images/Home/home.qrc \
     qml/images/MediaPlayer/mediaplayer.qrc \
     qml/images/MediaMusic/mediamusic.qrc \
     qml/images/Weather/weather.qrc \
