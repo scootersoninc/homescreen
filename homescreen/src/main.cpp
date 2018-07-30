@@ -140,8 +140,5 @@ int main(int argc, char *argv[])
     QQuickWindow *window = qobject_cast<QQuickWindow *>(root);
     QObject::connect(window, SIGNAL(frameSwapped()), layoutHandler, SLOT(slotActivateSurface()));
 
-    // start homescreen appplications
-    launcher->launch("launcher@0.1");   //Launcher
-
     return a.exec();
 }
