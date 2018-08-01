@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 The Qt Company Ltd.
+ * Copyright (C) 2017, 2018 TOYOTA MOTOR CORPORATION
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +65,8 @@ int StatusBarModel::rowCount(const QModelIndex &parent) const
     if (parent.isValid())
         return 0;
 
-    return StatusBarServer::SupportedCount;
+    // Delete bluetooth because use agl-service-bluetooth.
+    return StatusBarServer::SupportedCount - 1;
 }
 
 QVariant StatusBarModel::data(const QModelIndex &index, int role) const
@@ -75,7 +77,11 @@ QVariant StatusBarModel::data(const QModelIndex &index, int role) const
 
     switch (role) {
     case Qt::DisplayRole:
-        ret = d->iconList[index.row()];
+        if (index.row() == 0){
+            ret = d->iconList[StatusBarServer::StatusWifi];
+        }else if (index.row() == 1){
+            ret = d->iconList[StatusBarServer::StatusCellular];
+        }
         break;
     default:
         break;

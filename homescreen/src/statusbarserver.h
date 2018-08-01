@@ -24,6 +24,9 @@ class StatusBarServer : public QObject
     Q_OBJECT
 public:
     enum {
+        StatusWifi = 0,
+        StatusBluetooth = 1,
+        StatusCellular = 2,
         SupportedCount = 3,
     };
     explicit StatusBarServer(QObject *parent = NULL);

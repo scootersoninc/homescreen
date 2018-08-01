@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2016, 2017 Mentor Graphics Development (Deutschland) GmbH
- * Copyright (c) 2017 TOYOTA MOTOR CORPORATION
+ * Copyright (c) 2017, 2018 TOYOTA MOTOR CORPORATION
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@
 
 #include <qlibwindowmanager.h>
 #include <weather.h>
+#include <bluetooth.h>
 #include "applicationlauncher.h"
 #include "statusbarmodel.h"
 #include "afm_user_daemon_proxy.h"
@@ -134,6 +135,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("homescreenHandler", homescreenHandler);
     engine.rootContext()->setContextProperty("launcher", launcher);
     engine.rootContext()->setContextProperty("weather", new Weather(bindingAddress));
+    engine.rootContext()->setContextProperty("bluetooth", new Bluetooth(bindingAddress));
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
     QObject *root = engine.rootObjects().first();
