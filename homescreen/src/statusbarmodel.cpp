@@ -20,6 +20,8 @@
 
 #include <QtDBus/QDBusConnection>
 
+#include "network.h"
+
 class StatusBarModel::Private
 {
 public:
@@ -30,6 +32,7 @@ private:
 public:
     StatusBarServer server;
     QString iconList[StatusBarServer::SupportedCount];
+    Network *network;
 };
 
 StatusBarModel::Private::Private(StatusBarModel *parent)
@@ -58,6 +61,49 @@ StatusBarModel::StatusBarModel(QObject *parent)
 StatusBarModel::~StatusBarModel()
 {
     delete d;
+}
+
+void StatusBarModel::init(QUrl &url, QQmlContext *context)
+{
+    d->network = new Network(url, context);
+    context->setContextProperty("network", d->network);
+
+    QObject::connect(d->network, &Network::wifiConnectedChanged, this, &StatusBarModel::onWifiConnectedChanged);
+    QObject::connect(d->network, &Network::wifiEnabledChanged, this, &StatusBarModel::onWifiEnabledChanged);
+    QObject::connect(d->network, &Network::wifiStrengthChanged, this, &StatusBarModel::onWifiStrengthChanged);
+
+    setWifiStatus(d->network->wifiConnected(), d->network->wifiEnabled(), d->network->wifiStrength());
+}
+
+void StatusBarModel::setWifiStatus(bool connected, bool enabled, int strength)
+{
+    if (enabled && connected)
+        if (strength < 30)
+            d->server.setStatusIcon(0, QStringLiteral("qrc:/images/Status/HMI_Status_Wifi_1Bar-01.png"));
+        else if (strength < 50)
+            d->server.setStatusIcon(0, QStringLiteral("qrc:/images/Status/HMI_Status_Wifi_2Bars-01.png"));
+        else if (strength < 70)
+            d->server.setStatusIcon(0, QStringLiteral("qrc:/images/Status/HMI_Status_Wifi_3Bars-01.png"));
+        else
+            d->server.setStatusIcon(0, QStringLiteral("qrc:/images/Status/HMI_Status_Wifi_Full-01.png"));
+    else
+        d->server.setStatusIcon(0, QStringLiteral("qrc:/images/Status/HMI_Status_Wifi_NoBars-01.png"));
+}
+
+void StatusBarModel::onWifiConnectedChanged(bool connected)
+{
+    setWifiStatus(connected, d->network->wifiEnabled(), d->network->wifiStrength());
+}
+
+void StatusBarModel::onWifiEnabledChanged(bool enabled)
+{
+    setWifiStatus(d->network->wifiConnected(), enabled, d->network->wifiStrength());
+}
+
+void StatusBarModel::onWifiStrengthChanged(int strength)
+{
+    qInfo() << "Strength changed: " << strength;
+    setWifiStatus(d->network->wifiConnected(), d->network->wifiEnabled(), strength);
 }
 
 int StatusBarModel::rowCount(const QModelIndex &parent) const

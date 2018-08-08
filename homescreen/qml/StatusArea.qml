@@ -157,7 +157,7 @@ Item {
                 }
             }
             Repeater {
-                model: StatusBarModel {}
+                model: StatusBarModel { objectName: "statusBar" }
                 delegate: Image {
                     Layout.preferredWidth: 77
                     Layout.preferredHeight: 73

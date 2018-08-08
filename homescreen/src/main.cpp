@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
     parser.addVersionOption();
     parser.process(a);
     QStringList positionalArguments = parser.positionalArguments();
-    
+
     int port = 1700;
     QString token = "wm";
 
@@ -96,6 +96,8 @@ int main(int argc, char *argv[])
     if(layoutHandler->init(port,token) != 0){
         exit(EXIT_FAILURE);
     }
+
+    AGLScreenInfo screenInfo(layoutHandler->get_scale_factor());
 
     if (layoutHandler->requestSurface(QString("HomeScreen")) != 0) {
         exit(EXIT_FAILURE);
@@ -136,11 +138,16 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("launcher", launcher);
     engine.rootContext()->setContextProperty("weather", new Weather(bindingAddress));
     engine.rootContext()->setContextProperty("bluetooth", new Bluetooth(bindingAddress));
+    engine.rootContext()->setContextProperty("screenInfo", &screenInfo);
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
     QObject *root = engine.rootObjects().first();
     QQuickWindow *window = qobject_cast<QQuickWindow *>(root);
     QObject::connect(window, SIGNAL(frameSwapped()), layoutHandler, SLOT(slotActivateSurface()));
+
+    QList<QObject *> sobjs = engine.rootObjects();
+    StatusBarModel *statusBar = sobjs.first()->findChild<StatusBarModel *>("statusBar");
+    statusBar->init(bindingAddress, engine.rootContext());
 
     return a.exec();
 }
