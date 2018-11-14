@@ -40,6 +40,10 @@ public:
     static void* myThis;
     static void onRep_static(struct json_object* reply_contents);
     static void onEv_static(const string& event, struct json_object* event_contents);
+
+signals:
+    void showNotification(QString application_id, QString icon_path, QString text);
+    void showInformation(QString info);
 private:
     LibHomeScreen *mp_hs;
 };
