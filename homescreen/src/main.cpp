@@ -78,6 +78,7 @@ int main(int argc, char *argv[])
 
     int port = 1700;
     QString token = "wm";
+    QString graphic_role = "homescreen"; // defined in layers.json in Window Manager
 
     if (positionalArguments.length() == 2) {
         port = positionalArguments.takeFirst().toInt();
@@ -99,12 +100,12 @@ int main(int argc, char *argv[])
 
     AGLScreenInfo screenInfo(layoutHandler->get_scale_factor());
 
-    if (layoutHandler->requestSurface(QString("HomeScreen")) != 0) {
+    if (layoutHandler->requestSurface(graphic_role) != 0) {
         exit(EXIT_FAILURE);
     }
 
-    layoutHandler->set_event_handler(QLibWindowmanager::Event_SyncDraw, [layoutHandler](json_object *object) {
-        layoutHandler->endDraw(QString("HomeScreen"));
+    layoutHandler->set_event_handler(QLibWindowmanager::Event_SyncDraw, [layoutHandler, &graphic_role](json_object *object) {
+        layoutHandler->endDraw(graphic_role);
     });
 
     layoutHandler->set_event_handler(QLibWindowmanager::Event_ScreenUpdated, [layoutHandler, launcher](json_object *object) {
