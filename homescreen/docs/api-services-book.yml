@@ -2,7 +2,7 @@ type: books
 books:
 -
     id: homescreen
-    title: Homescreen
+    title: HomeScreen (old)
     description: Homescreen documentation
     keywords:
     author: "TOYOTA MOTOR CORPORATION"
