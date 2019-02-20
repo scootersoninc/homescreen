@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 TOYOTA MOTOR CORPORATION
+ * Copyright (c) 2017, 2018, 2019 TOYOTA MOTOR CORPORATION
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ void HomescreenHandler::tapShortcut(QString application_id)
     HMI_DEBUG("HomeScreen","tapShortcut %s", application_id.toStdString().c_str());
     struct json_object* j_json = json_object_new_object();
     struct json_object* value;
-    value = json_object_new_string("normal");
+    value = json_object_new_string("normal.full");
     json_object_object_add(j_json, "area", value);
 
     mp_hs->showWindow(application_id.toStdString().c_str(), j_json);
