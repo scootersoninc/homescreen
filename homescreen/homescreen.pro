@@ -18,7 +18,7 @@ TARGET = HomeScreen
 QT = qml quick dbus websockets
 CONFIG += c++11 link_pkgconfig
 DESTDIR = $${OUT_PWD}/../package/root/bin
-PKGCONFIG += qlibwindowmanager qtappfw
+PKGCONFIG += qlibwindowmanager qtappfw afb-helpers-qt
 
 LIBS += -lhomescreen
 
@@ -30,16 +30,14 @@ SOURCES += \
     src/statusbarserver.cpp \
     src/applicationlauncher.cpp \
     src/mastervolume.cpp \
-    src/homescreenhandler.cpp \
-    helpers/qafbwebsocketclient.cpp
+    src/homescreenhandler.cpp
 
 HEADERS  += \
     src/statusbarmodel.h \
     src/statusbarserver.h \
     src/applicationlauncher.h \
     src/mastervolume.h \
-    src/homescreenhandler.h \
-    helpers/qafbwebsocketclient.h
+    src/homescreenhandler.h
 
 OTHER_FILES += \
     README.md
