@@ -46,20 +46,30 @@ void MasterVolume::setVolume(qint32 volume)
 	{
 		m_volume = volume;
 		QJsonObject arg;
-		arg.insert("action", "volume");
+		arg.insert("control", "Master");
 		arg.insert("value", volume);
-		m_client.call("ahl-4a", "activerole", arg, [](bool, const QJsonValue&) {
-			// Nothing to do, events will update sliders
-		});
+		m_client.call("audiomixer", "volume", arg);
 	}
 }
 
 void MasterVolume::onClientConnected()
 {
-	// Subscribe to 4a events
-	m_client.call("ahl-4a", "subscribe", QJsonValue(), [this](bool r, const QJsonValue&) {
-		if (r) qDebug() << "MasterVolume::onClientConnected - subscribed to 4a events!";
-		else qCritical () << "MasterVolume::onClientConnected - Failed to subscribe to 4a events!";
+	QJsonObject arg;
+	arg.insert("control", "Master");
+	m_client.call("audiomixer", "volume", arg, [this](bool r, const QJsonValue& v) {
+		if (r && v.isObject()) {
+			int volume = v.toObject()["response"].toObject()["volume"].toDouble() * 100;
+			volume = qBound(0, volume, 100);
+			if (m_volume != volume)
+			{
+				m_volume = volume;
+				emit VolumeChanged();
+			}
+		}
+
+		QJsonObject arg;
+		arg.insert("event", "volume_changed");
+		m_client.call("audiomixer", "subscribe", arg);
 	});
 }
 
@@ -77,19 +87,19 @@ void MasterVolume::onClientError(QAbstractSocket::SocketError se)
 void MasterVolume::onClientEventReceived(QString name, const QJsonValue& data)
 {
 	qDebug() << "MasterVolume::onClientEventReceived[" << name << "]: " << data;
-	if (name == "ahl-4a/volume_changed")
+	if (name == "audiomixer/volume_changed")
 	{
-		QJsonObject arg = data.toObject();
-		bool active = arg["active"].toBool();
-		if (active)
+		QString ctlName = data.toObject()["control"].toString();
+
+		if (ctlName != "Master")
+			return;
+
+		int volume = data.toObject()["value"].toDouble() * 100;
+		volume = qBound(0, volume, 100);
+		if (m_volume != volume)
 		{
-			// QString role = arg["role"].toString();
-			int volume = arg["volume"].toInt();
-			if (m_volume != volume)
-			{
-				m_volume = volume;
-				emit VolumeChanged();
-			}
+			m_volume = volume;
+			emit VolumeChanged();
 		}
 	}
 }
