@@ -45,26 +45,35 @@ static char ERROR_FLAG[6][20] = {"NONE", "ERROR", "WARNING", "NOTICE", "INFO", "
 
 static void _HMI_LOG(enum LOG_LEVEL level, const char* file, const char* func, const int line, const char* prefix, const char* log, ...)
 {
-    const int log_level = (getenv("USE_HMI_DEBUG") == NULL)?LOG_LEVEL_ERROR:atoi(getenv("USE_HMI_DEBUG"));
-    if(log_level < level)
-    {
+    char *message;
+    struct timespec tp;
+    uint32_t time;
+    va_list args;
+    int ret;
+    const int log_level = (getenv("USE_HMI_DEBUG") == NULL) ? LOG_LEVEL_ERROR : atoi(getenv("USE_HMI_DEBUG"));
+
+    if(log_level < level) {
         return;
     }
 
-    char *message;
-    struct timespec tp;
-    unsigned int time;
+    va_start(args, log);
+    if (vasprintf(&message, log, args) < 0) {
+	fprintf(stderr, "Warning: message is NULL\n");
+	vfprintf(stderr, log, args);
+	fprintf(stderr, "\n");
+	message = NULL;
+    }
 
     clock_gettime(CLOCK_REALTIME, &tp);
-	time = (tp.tv_sec * 1000000L) + (tp.tv_nsec / 1000);
+    time = (tp.tv_sec * 1000000L) + (tp.tv_nsec / 1000);
+    if (tp.tv_nsec % 1000 >= 500) {
+        time++;
+    }
 
-	va_list args;
-	va_start(args, log);
-	if (log == NULL || vasprintf(&message, log, args) < 0)
-        message = NULL;
     fprintf(stderr,  "[%10.3f] [%s %s] [%s, %s(), Line:%d] >>> %s \n", time / 1000.0, prefix, ERROR_FLAG[level], file, func, line, message);
+
     va_end(args);
-	free(message);
+    free(message);
 }
 
 #endif  //__HMI_DEBUG_H__
