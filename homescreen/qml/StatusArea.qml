@@ -37,13 +37,13 @@ Item {
         onConditionChanged: {
             var icon = ''
 
-            if (condition.indexOf("clouds") != -1) {
+            if (condition.indexOf("clouds") !== -1) {
                 icon = "WeatherIcons_Cloudy-01.png"
-            } else if (condition.indexOf("thunderstorm") != -1) {
+            } else if (condition.indexOf("thunderstorm") !== -1) {
                 icon = "WeatherIcons_Thunderstorm-01.png"
-            } else if (condition.indexOf("snow") != -1) {
+            } else if (condition.indexOf("snow") !== -1) {
                 icon = "WeatherIcons_Snow-01.png"
-            } else if (condition.indexOf("rain") != -1) {
+            } else if (condition.indexOf("rain") !== -1) {
                 icon = "WeatherIcons_Rain-01.png"
             }
 
