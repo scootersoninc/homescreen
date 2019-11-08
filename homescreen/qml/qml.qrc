@@ -10,6 +10,5 @@
         <file>StatusArea.qml</file>
         <file>TopArea.qml</file>
         <file>IconItem.qml</file>
-        <file>SpeechChrome.qml</file>
     </qresource>
 </RCC>

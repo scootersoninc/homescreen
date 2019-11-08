@@ -22,8 +22,8 @@ import AGL.Demo.Controls 1.0
 import MasterVolume 1.0
 
 Image {
-    width: parent.width
-    height: parent.height
+    width: 1080
+    height: 215
     source: './images/Utility_Logo_Background-01.svg'
     property bool displayVolume: false;
 
@@ -40,14 +40,14 @@ Image {
     }
 
     Image {
-        id: logo_image
+    id: logo_image
         anchors.centerIn: parent
         source: './images/Utility_Logo_Grey-01.svg'
     }
 
     Timer {
         id: volume_timer
-        interval: 3000; running: false; repeat: false
+        interval: 5000; running: false; repeat: false
         onTriggered: displayVolume = false
     }
 
@@ -56,13 +56,11 @@ Image {
     PropertyChanges { target: master_volume; opacity: 1.0 }
     PropertyChanges { target: slider; enabled: true }
     PropertyChanges { target: logo_image; opacity: 0.0 }
-    PropertyChanges { target: speech_chrome; visible: false }
     },
     State { when: !displayVolume;
     PropertyChanges { target: master_volume; opacity: 0.0 }
     PropertyChanges { target: slider; enabled: false }
     PropertyChanges { target: logo_image; opacity: 1.0 }
-    PropertyChanges { target: speech_chrome; visible: speech_chrome.agentPresent }
     }
     ]
 
@@ -122,13 +120,5 @@ Image {
                 text: "100 %"
             }
         }
-    }
-
-    SpeechChrome {
-        id: speech_chrome
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        height: parent.height
     }
 }
