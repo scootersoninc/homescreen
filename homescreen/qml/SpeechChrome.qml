@@ -25,13 +25,34 @@ Item {
     }
 
     Image {
-        id: pushToTalk
+        id: pushToTalkLeft
 
         height: parent.height * 0.80
         width: height
 
         anchors.left: parent.left
         anchors.leftMargin: parent.width / 128
+        anchors.verticalCenter: parent.verticalCenter
+        source: "./images/SpeechChrome/push_to_talk.svg"
+
+        MouseArea {
+            anchors.fill: parent
+            onPressed: speechChromeController.pushToTalk()
+        }
+
+        Behavior on opacity {
+            NumberAnimation { duration: 250 }
+        }
+    }
+
+    Image {
+        id: pushToTalkRight
+
+        height: parent.height * 0.80
+        width: height
+
+        anchors.right: parent.right
+        anchors.rightMargin: parent.width / 128
         anchors.verticalCenter: parent.verticalCenter
         source: "./images/SpeechChrome/push_to_talk.svg"
 
@@ -55,7 +76,12 @@ Item {
                 x: 0
             }
             PropertyChanges {
-                target: pushToTalk
+                target: pushToTalkLeft
+                opacity: 1.0
+                enabled: true
+            }
+            PropertyChanges {
+                target: pushToTalkRight
                 opacity: 1.0
                 enabled: true
             }
@@ -69,7 +95,12 @@ Item {
                 x: 0
             }
             PropertyChanges {
-                target: pushToTalk
+                target: pushToTalkLeft
+                opacity: 0.0
+                enabled: false
+            }
+            PropertyChanges {
+                target: pushToTalkRight
                 opacity: 0.0
                 enabled: false
             }
@@ -83,7 +114,12 @@ Item {
                 x: root.width - chromeBarImage.width
             }
             PropertyChanges {
-                target: pushToTalk
+                target: pushToTalkLeft
+                opacity: 0.0
+                enabled: false
+            }
+            PropertyChanges {
+                target: pushToTalkRight
                 opacity: 0.0
                 enabled: false
             }
@@ -97,7 +133,12 @@ Item {
                 x: (root.width - chromeBarImage.width) * 0.5
             }
             PropertyChanges {
-                target: pushToTalk
+                target: pushToTalkLeft
+                opacity: 0.0
+                enabled: false
+            }
+            PropertyChanges {
+                target: pushToTalkRight
                 opacity: 0.0
                 enabled: false
             }
@@ -111,7 +152,12 @@ Item {
                 x: 0
             }
             PropertyChanges {
-                target: pushToTalk
+                target: pushToTalkLeft
+                opacity: 1.0
+                enabled: true
+            }
+            PropertyChanges {
+                target: pushToTalkRight
                 opacity: 1.0
                 enabled: true
             }
