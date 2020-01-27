@@ -16,9 +16,8 @@ TEMPLATE = subdirs
 
 load(configure)
 
-SUBDIRS = interfaces \
+SUBDIRS = \
     homescreen \
     package
 
-homescreen.depends = interfaces
 package.depends += homescreen

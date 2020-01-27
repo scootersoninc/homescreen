@@ -40,7 +40,6 @@ signals:
     void currentChanged(const QString &current);
 
 public slots:
-    int launch(const QString &application);
     void setCurrent(const QString &current);
 
 private:

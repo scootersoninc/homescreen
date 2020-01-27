@@ -16,13 +16,11 @@
  * limitations under the License.
  */
 
+#include <QtCore/QTimer>
+
 #include "applicationlauncher.h"
 
-#include "afm_user_daemon_proxy.h"
-
 #include "hmi-debug.h"
-
-extern org::AGL::afm::user *afm_user_daemon_proxy;
 
 ApplicationLauncher::ApplicationLauncher(QObject *parent)
     : QObject(parent)
@@ -43,21 +41,6 @@ ApplicationLauncher::ApplicationLauncher(QObject *parent)
     connect(this, &ApplicationLauncher::currentChanged, [&]() {
         setLaunching(false);
     });
-}
-
-int ApplicationLauncher::launch(const QString &application)
-{
-    int result = -1;
-    HMI_DEBUG("HomeScreen","ApplicationLauncher launch %s.", application.toStdString().c_str());
-
-    result = afm_user_daemon_proxy->start(application).value().toInt();
-    HMI_DEBUG("HomeScreen","ApplicationLauncher pid: %d.", result);
-
-    if (result > 1) {
-        setLaunching(true);
-    }
-
-    return result;
 }
 
 bool ApplicationLauncher::isLaunching() const
