@@ -18,7 +18,7 @@ TARGET = HomeScreen
 QT = qml quick websockets
 CONFIG += c++11 link_pkgconfig
 DESTDIR = $${OUT_PWD}/../package/root/bin
-PKGCONFIG += qlibwindowmanager qtappfw afb-helpers-qt
+PKGCONFIG += qlibwindowmanager qtappfw-weather qtappfw-network qtappfw-bt afb-helpers-qt
 
 LIBS += -lhomescreen
 
