@@ -22,6 +22,10 @@ PKGCONFIG += qlibwindowmanager qtappfw-weather qtappfw-network qtappfw-bt afb-he
 
 LIBS += -lhomescreen
 
+CONFIG(release, debug|release) {
+    QMAKE_POST_LINK = $(STRIP) --strip-unneeded $(TARGET)
+}
+
 SOURCES += \
     src/main.cpp \
     src/statusbarmodel.cpp \
