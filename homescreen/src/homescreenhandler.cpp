@@ -24,11 +24,11 @@
 
 void* HomescreenHandler::myThis = 0;
 
-HomescreenHandler::HomescreenHandler(Shell *_aglShell, QObject *parent) :
+HomescreenHandler::HomescreenHandler(Shell *_aglShell, ApplicationLauncher *launcher, QObject *parent) :
     QObject(parent),
     aglShell(_aglShell)
 {
-
+    mp_launcher = launcher;
 }
 
 HomescreenHandler::~HomescreenHandler()
@@ -113,6 +113,10 @@ void HomescreenHandler::tapShortcut(QString application_id)
 	// the first time. Later calls to HomescreenHandler::tapShortcut will
 	// require calling 'agl_shell_activate_app'
 	agl_shell_activate_app(agl_shell, application_id.toStdString().c_str(), output);
+
+	if (mp_launcher) {
+		mp_launcher->setCurrent(application_id);
+	}
 }
 
 void HomescreenHandler::onRep_static(struct json_object* reply_contents)

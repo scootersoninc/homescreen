@@ -234,15 +234,14 @@ int main(int argc, char *argv[])
     Shell *aglShell = new Shell(shell, &a);
 
     // import C++ class to QML
-    // qmlRegisterType<ApplicationLauncher>("HomeScreen", 1, 0, "ApplicationLauncher");
     qmlRegisterType<StatusBarModel>("HomeScreen", 1, 0, "StatusBarModel");
     qmlRegisterType<MasterVolume>("MasterVolume", 1, 0, "MasterVolume");
     qmlRegisterUncreatableType<ChromeController>("SpeechChrome", 1, 0, "SpeechChromeController",
                                                  QLatin1String("SpeechChromeController is uncreatable."));
 
     ApplicationLauncher *launcher = new ApplicationLauncher();
-
-    HomescreenHandler* homescreenHandler = new HomescreenHandler(aglShell);
+    launcher->setCurrent(QStringLiteral("launcher"));
+    HomescreenHandler* homescreenHandler = new HomescreenHandler(aglShell, launcher);
     homescreenHandler->init(port, token.toStdString().c_str());
 
     QUrl bindingAddress;
