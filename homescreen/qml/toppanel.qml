@@ -4,10 +4,10 @@ import QtQuick.Window 2.13
 Window {
     id: toppanel
     width: Screen.width
-    height: Screen.height * (218.0 / 1920.0)
+    height: 216
     flags: Qt.FramelessWindowHint
     visible: true
-    //color: "#aaaa0000"
+    color: "#33363a"
 
     TopArea {
     }

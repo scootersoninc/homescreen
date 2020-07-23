@@ -4,10 +4,11 @@ import QtQuick.Window 2.13
 Window {
     id: bottompanel
     width: Screen.width
-    height: Screen.height * (215.0 / 1920.0)
+    height: 216
     flags: Qt.FramelessWindowHint
     visible: true
-    //color: "#aaaa0000"
+    color: "#33363a"
+
     MediaArea {
     }
 
@@ -24,7 +25,7 @@ Window {
     Item {
         id: bottomInformation
         width: parent.width
-        height: 215
+        height: 216
         anchors.bottom: parent.bottom
         visible: false
         Text {
