@@ -13,5 +13,8 @@
         <file>background.qml</file>
         <file>toppanel.qml</file>
         <file>bottompanel.qml</file>
+        <file>background_demo.qml</file>
+        <file>toppanel_demo.qml</file>
+        <file>bottompanel_demo.qml</file>
     </qresource>
 </RCC>

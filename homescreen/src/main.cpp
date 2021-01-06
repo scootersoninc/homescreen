@@ -138,21 +138,40 @@ static void
 load_agl_shell_app(QPlatformNativeInterface *native,
 		   QQmlApplicationEngine *engine,
 		   struct agl_shell *agl_shell, QUrl &bindingAddress,
-		   const char *screen_name)
+		   const char *screen_name, bool is_demo)
 {
 	struct wl_surface *bg, *top, *bottom;
 	struct wl_output *output;
 	QObject *qobj_bg, *qobj_top, *qobj_bottom;
 	QScreen *screen = nullptr;
 
-	QQmlComponent bg_comp(engine, QUrl("qrc:/background.qml"));
-	qInfo() << bg_comp.errors();
+	if (is_demo) {
+		QQmlComponent bg_comp(engine, QUrl("qrc:/background_demo.qml"));
+		qInfo() << bg_comp.errors();
 
-	QQmlComponent top_comp(engine, QUrl("qrc:/toppanel.qml"));
-	qInfo() << top_comp.errors();
+		QQmlComponent top_comp(engine, QUrl("qrc:/toppanel_demo.qml"));
+		qInfo() << top_comp.errors();
 
-	QQmlComponent bot_comp(engine, QUrl("qrc:/bottompanel.qml"));
-	qInfo() << bot_comp.errors();
+		QQmlComponent bot_comp(engine, QUrl("qrc:/bottompanel_demo.qml"));
+		qInfo() << bot_comp.errors();
+
+		top = create_component(native, &top_comp, screen, &qobj_top);
+		bottom = create_component(native, &bot_comp, screen, &qobj_bottom);
+		bg = create_component(native, &bg_comp, screen, &qobj_bg);
+	} else {
+		QQmlComponent bg_comp(engine, QUrl("qrc:/background.qml"));
+		qInfo() << bg_comp.errors();
+
+		QQmlComponent top_comp(engine, QUrl("qrc:/toppanel.qml"));
+		qInfo() << top_comp.errors();
+
+		QQmlComponent bot_comp(engine, QUrl("qrc:/bottompanel.qml"));
+		qInfo() << bot_comp.errors();
+
+		top = create_component(native, &top_comp, screen, &qobj_top);
+		bottom = create_component(native, &bot_comp, screen, &qobj_bottom);
+		bg = create_component(native, &bg_comp, screen, &qobj_bg);
+	}
 
 	if (!screen_name)
 		screen = qApp->primaryScreen();
@@ -163,9 +182,6 @@ load_agl_shell_app(QPlatformNativeInterface *native,
 		"first screen " << qApp->screens().first()->name();
 	output = getWlOutput(native, screen);
 
-	top = create_component(native, &top_comp, screen, &qobj_top);
-	bottom = create_component(native, &bot_comp, screen, &qobj_bottom);
-	bg = create_component(native, &bg_comp, screen, &qobj_bg);
 
 	/* engine.rootObjects() works only if we had a load() */
 	StatusBarModel *statusBar = qobj_top->findChild<StatusBarModel *>("statusBar");
@@ -192,10 +208,15 @@ int main(int argc, char *argv[])
     setenv("QT_QPA_PLATFORM", "wayland", 1);
     QGuiApplication a(argc, argv);
     const char *screen_name;
+    bool is_demo_val = false;
 
     QPlatformNativeInterface *native = qApp->platformNativeInterface();
     struct agl_shell *agl_shell = nullptr;
     screen_name = getenv("HOMESCREEN_START_SCREEN");
+
+    const char *is_demo = getenv("HOMESCREEN_DEMO_CI");
+    if (is_demo && strcmp(is_demo, "1") == 0)
+	    is_demo_val = true;
 
     QCoreApplication::setOrganizationDomain("LinuxFoundation");
     QCoreApplication::setOrganizationName("AutomotiveGradeLinux");
@@ -269,7 +290,7 @@ int main(int argc, char *argv[])
     /* instead of loading main.qml we load one-by-one each of the QMLs,
      * divided now between several surfaces: panels, background.
      */
-    load_agl_shell_app(native, &engine, agl_shell, bindingAddress, screen_name);
+    load_agl_shell_app(native, &engine, agl_shell, bindingAddress, screen_name, is_demo_val);
 
     return a.exec();
 }
