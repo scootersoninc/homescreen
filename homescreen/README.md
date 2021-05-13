@@ -7,4 +7,4 @@ AGL repo for source code:
 https://gerrit.automotivelinux.org/gerrit/#/admin/projects/staging/HomeScreen
 
 AGL repo for bitbake recipe:
-https://gerrit.automotivelinux.org/gerrit/#/admin/projects/AGL/meta-agl-demo/recipes-demo-hmi/homescreen/homescreen_git.bb
+https://git.automotivelinux.org/AGL/meta-agl-demo/tree/recipes-demo/homescreen/homescreen_git.bb
