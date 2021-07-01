@@ -62,5 +62,5 @@ RESOURCES += \
     qml/images/SpeechChrome/speechchrome.qrc
 
 
-WAYLANDCLIENTSOURCES += \
-    protocol/agl-shell.xml
+AGL_SHELL_PATH = $$system(pkg-config --variable=pkgdatadir agl-compositor-0.0.19-protocols)
+WAYLANDCLIENTSOURCES += $$AGL_SHELL_PATH/agl-shell.xml
