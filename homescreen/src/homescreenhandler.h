@@ -19,7 +19,6 @@
 
 #include <QObject>
 
-#include <libhomescreen.hpp>
 #include "applicationlauncher.h"
 
 #include "shell.h"
@@ -34,22 +33,24 @@ public:
     explicit HomescreenHandler(Shell *aglShell, ApplicationLauncher *launcher = 0, QObject *parent = 0);
     ~HomescreenHandler();
 
-    void init(int port, const char* token);
+    void init(void);
 
     Q_INVOKABLE void tapShortcut(QString application_id);
 
+#if 0
     void onRep(struct json_object* reply_contents);
     void onEv(const string& event, struct json_object* event_contents);
-
+#endif
     static void* myThis;
+#if 0
     static void onRep_static(struct json_object* reply_contents);
     static void onEv_static(const string& event, struct json_object* event_contents);
+#endif
 
 signals:
     void showNotification(QString application_id, QString icon_path, QString text);
     void showInformation(QString info);
 private:
-    LibHomeScreen *mp_hs;
     ApplicationLauncher *mp_launcher;
     Shell *aglShell;
 };

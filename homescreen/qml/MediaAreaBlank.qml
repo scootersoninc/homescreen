@@ -19,7 +19,9 @@ import QtQuick 2.2
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 2.0
 import AGL.Demo.Controls 1.0
+/*
 import MasterVolume 1.0
+*/
 
 Image {
     anchors.fill: parent
@@ -55,20 +57,18 @@ Image {
     PropertyChanges { target: master_volume; opacity: 1.0 }
     PropertyChanges { target: slider; enabled: true }
     PropertyChanges { target: logo_image; opacity: 0.0 }
-    PropertyChanges { target: speech_chrome; visible: false }
     },
     State { when: !displayVolume;
     PropertyChanges { target: master_volume; opacity: 0.0 }
     PropertyChanges { target: slider; enabled: false }
     PropertyChanges { target: logo_image; opacity: 1.0 }
-    PropertyChanges { target: speech_chrome; visible: speech_chrome.agentPresent }
     }
     ]
 
     transitions: Transition {
     NumberAnimation { property: "opacity"; duration: 500}
     }
-
+/*
     MasterVolume {
         id: mv
         objectName: "mv"
@@ -77,7 +77,7 @@ Image {
             mv.open(bindingAddress);
         }
     }
-
+*/
     Item {
         id: master_volume
         anchors.fill: parent
@@ -108,8 +108,10 @@ Image {
                 to: 100
                 stepSize: 1
                 snapMode: Slider.SnapOnRelease
+/*
                 onValueChanged: mv.volume = value
                 Component.onCompleted: value = mv.volume
+*/
                 onPressedChanged: {
                     if (pressed) {volume_timer.stop()}
                     else {volume_timer.restart()}
@@ -121,13 +123,5 @@ Image {
                 text: "100 %"
             }
         }
-    }
-
-    SpeechChrome {
-        id: speech_chrome
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        height: parent.height
     }
 }

@@ -41,7 +41,7 @@ Image {
             Layout.preferredWidth: 291
         }
     }
-
+/*
     Timer {
         id: launching
         interval: 500
@@ -56,4 +56,5 @@ Image {
         indeterminate: visible
         visible: launcher.launching && !launching.running
     }
+*/
 }

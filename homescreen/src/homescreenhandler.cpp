@@ -33,19 +33,22 @@ HomescreenHandler::HomescreenHandler(Shell *_aglShell, ApplicationLauncher *laun
 
 HomescreenHandler::~HomescreenHandler()
 {
+#if 0
     if (mp_hs != NULL) {
         delete mp_hs;
     }
+#endif
 }
 
-void HomescreenHandler::init(int port, const char *token)
+void HomescreenHandler::init(void)
 {
+#if 0
     mp_hs = new LibHomeScreen();
     mp_hs->init(port, token);
-
+#endif
     myThis = this;
 
-
+#if 0
     mp_hs->registerCallback(nullptr, HomescreenHandler::onRep_static);
 
     mp_hs->set_event_handler(LibHomeScreen::Event_OnScreenMessage, [this](json_object *object){
@@ -83,6 +86,7 @@ void HomescreenHandler::init(int port, const char *token)
 
        emit showInformation(QString(QLatin1String(info)));
     });
+#endif
 }
 
 static struct wl_output *
@@ -95,7 +99,7 @@ getWlOutput(QPlatformNativeInterface *native, QScreen *screen)
 void HomescreenHandler::tapShortcut(QString application_id)
 {
 	HMI_DEBUG("HomeScreen","tapShortcut %s", application_id.toStdString().c_str());
-
+#if 0
 	struct json_object* j_json = json_object_new_object();
 	struct json_object* value;
 
@@ -117,8 +121,10 @@ void HomescreenHandler::tapShortcut(QString application_id)
 	if (mp_launcher) {
 		mp_launcher->setCurrent(application_id);
 	}
+#endif
 }
 
+#if 0
 void HomescreenHandler::onRep_static(struct json_object* reply_contents)
 {
     static_cast<HomescreenHandler*>(HomescreenHandler::myThis)->onRep(reply_contents);
@@ -148,3 +154,4 @@ void HomescreenHandler::onEv(const string& event, struct json_object* event_cont
         HMI_DEBUG("HomeScreen","display_message = %s", display_message);
     }
 }
+#endif

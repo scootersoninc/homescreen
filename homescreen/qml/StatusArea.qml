@@ -30,7 +30,7 @@ Item {
         interval: 100; running: true; repeat: true;
         onTriggered: root.now = new Date
     }
-
+/*
     Connections {
         target: weather
 
@@ -54,7 +54,7 @@ Item {
             temperature_item.text = temperature.split(".")[0] + '°F'
         }
     }
-
+*/
     RowLayout {
         anchors.fill: parent
         spacing: 0
@@ -126,6 +126,7 @@ Item {
                 fillMode: Image.PreserveAspectFit
                 property string deviceName: "none"
                 property bool connStatus: false
+/*
                 Connections {
                     target: bluetooth
 
@@ -133,7 +134,9 @@ Item {
                             bt_icon.connStatus = state
                     }
                 }
+*/
             }
+/*
             Repeater {
                 model: StatusBarModel { objectName: "statusBar" }
                 delegate: Image {
@@ -143,6 +146,7 @@ Item {
                     fillMode: Image.PreserveAspectFit
                 }
             }
+*/
         }
     }
 }

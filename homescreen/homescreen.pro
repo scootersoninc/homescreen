@@ -14,39 +14,29 @@
 # limitations under the License.
 
 TEMPLATE = app
-TARGET = HomeScreen
-QT = qml quick websockets gui-private
+TARGET = homescreen
+QT = qml quick gui-private
 CONFIG += c++11 link_pkgconfig wayland-scanner
-DESTDIR = $${OUT_PWD}/../package/root/bin
-PKGCONFIG += qtappfw-weather qtappfw-network qtappfw-bt afb-helpers-qt wayland-client json-c
-
-LIBS += -lhomescreen
-
-CONFIG(release, debug|release) {
-    QMAKE_POST_LINK = $(STRIP) --strip-unneeded $(TARGET)
-}
+PKGCONFIG += wayland-client
 
 SOURCES += \
     src/main.cpp \
+    src/shell.cpp \
     src/statusbarmodel.cpp \
     src/statusbarserver.cpp \
     src/applicationlauncher.cpp \
     src/mastervolume.cpp \
-    src/homescreenhandler.cpp \
-    src/shell.cpp \
-    src/aglsocketwrapper.cpp \
-    src/chromecontroller.cpp
+    src/homescreenhandler.cpp
 
 HEADERS  += \
+    src/shell.h \
+    src/constants.h \
     src/statusbarmodel.h \
     src/statusbarserver.h \
     src/applicationlauncher.h \
     src/mastervolume.h \
-    src/homescreenhandler.h \
-    src/shell.h \
-    src/aglsocketwrapper.h \
-    src/chromecontroller.h \
-    src/constants.h
+    src/homescreenhandler.h
+
 
 OTHER_FILES += \
     README.md
@@ -58,9 +48,13 @@ RESOURCES += \
     qml/images/Shortcut/shortcut.qrc \
     qml/images/Status/status.qrc \
     qml/images/images.qrc \
-    qml/qml.qrc \
-    qml/images/SpeechChrome/speechchrome.qrc
-
+    qml/qml.qrc
 
 AGL_SHELL_PATH = $$system(pkg-config --variable=pkgdatadir agl-compositor-0.0.19-protocols)
 WAYLANDCLIENTSOURCES += $$AGL_SHELL_PATH/agl-shell.xml
+
+target.path = $${PREFIX}/usr/bin
+target.files += $${OUT_PWD}/$${TARGET}
+target.CONFIG = no_check_exist executable
+
+INSTALLS += target

@@ -16,7 +16,6 @@
 
 #include <QtCore/QObject>
 #include <QQmlEngine>
-#include "../qafbwebsocketclient.h"
 
 class MasterVolume
 	: public QObject
@@ -25,24 +24,24 @@ class MasterVolume
 	Q_PROPERTY (uint32_t volume READ getVolume WRITE setVolume NOTIFY VolumeChanged)
 
 private:
-	QAfbWebsocketClient m_client;
-	QUrl m_url;
 	qint32 m_volume;
 
 public:
 	MasterVolume(QObject* parent = nullptr);
 	~MasterVolume() = default;
 
-	Q_INVOKABLE void open(const QUrl& url);
+	//Q_INVOKABLE void open(const QUrl& url);
 	Q_INVOKABLE qint32 getVolume() const;
 	Q_INVOKABLE void setVolume(qint32 val);
 
 private slots:
+#if 0
 	void onClientConnected();
 	void onClientDisconnected();
 	void onClientError(QAbstractSocket::SocketError se);
 	void onClientEventReceived(QString name, const QJsonValue& data);
 	void TryOpen();
+#endif
 
 signals:
 	void VolumeChanged();

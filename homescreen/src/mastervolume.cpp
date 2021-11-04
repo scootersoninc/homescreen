@@ -15,7 +15,6 @@
  */
 
 #include "mastervolume.h"
-#include <QJsonObject>
 #include <QTimer>
 #include <QtDebug>
 
@@ -25,17 +24,19 @@ MasterVolume::MasterVolume(QObject* parent)
 	: QObject(parent)
 	, m_volume{50}
 {
+#if 0
 	connect(&m_client, SIGNAL(connected()), this, SLOT(onClientConnected()));
 	connect(&m_client, SIGNAL(disconnected()), this, SLOT(onClientDisconnected()));
 	connect(&m_client, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(onClientError(QAbstractSocket::SocketError)));
 	connect(&m_client, SIGNAL(eventReceived(QString, const QJsonValue&)), this, SLOT(onClientEventReceived(QString, const QJsonValue&)));
+#endif
 }
 
+#if 0
 void MasterVolume::open(const QUrl& url)
 {
-	m_url = url;
-	TryOpen();
 }
+#endif
 
 qint32 MasterVolume::getVolume() const
 {
@@ -47,16 +48,21 @@ void MasterVolume::setVolume(qint32 volume)
 	if (m_volume != volume)
 	{
 		m_volume = volume;
+#if 0
 		QJsonObject arg;
 		arg.insert("control", MASTER_CONTROL);
 		double v = (double) volume / 100.0;
 		arg.insert("value", v);
 		m_client.call("audiomixer", "volume", arg);
+#endif
 	}
 }
 
+#if 0
+
 void MasterVolume::onClientConnected()
 {
+
 	QJsonObject arg;
 	arg.insert("control", MASTER_CONTROL);
 	m_client.call("audiomixer", "volume", arg, [this](bool r, const QJsonValue& v) {
@@ -107,7 +113,4 @@ void MasterVolume::onClientEventReceived(QString name, const QJsonValue& data)
 	}
 }
 
-void MasterVolume::TryOpen()
-{
-	m_client.open(m_url);
-}
+#endif

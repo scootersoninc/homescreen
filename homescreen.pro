@@ -17,7 +17,4 @@ TEMPLATE = subdirs
 load(configure)
 
 SUBDIRS = \
-    homescreen \
-    package
-
-package.depends += homescreen
+    homescreen
