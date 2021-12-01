@@ -22,6 +22,9 @@
 
 #include <qpa/qplatformnativeinterface.h>
 
+#define APPLAUNCH_DBUS_IFACE     "org.automotivelinux.AppLaunch"
+#define APPLAUNCH_DBUS_OBJECT    "/org/automotivelinux/AppLaunch"
+
 void* HomescreenHandler::myThis = 0;
 
 HomescreenHandler::HomescreenHandler(Shell *_aglShell, ApplicationLauncher *launcher, QObject *parent) :
@@ -29,6 +32,8 @@ HomescreenHandler::HomescreenHandler(Shell *_aglShell, ApplicationLauncher *laun
     aglShell(_aglShell)
 {
     mp_launcher = launcher;
+    applaunch_iface = new org::automotivelinux::AppLaunch(APPLAUNCH_DBUS_IFACE, APPLAUNCH_DBUS_OBJECT,
+                                                          QDBusConnection::sessionBus(), this);
 }
 
 HomescreenHandler::~HomescreenHandler()
@@ -47,6 +52,14 @@ void HomescreenHandler::init(void)
     mp_hs->init(port, token);
 #endif
     myThis = this;
+
+    /*
+     * The "started" signal is received any time a start request is made to applaunchd,
+     * and the application either starts successfully or is already running. This
+     * effectively acts as a "switch to app X" action.
+     */
+    connect(applaunch_iface, SIGNAL(started(QString)), this, SLOT(appStarted(QString)));
+    connect(applaunch_iface, SIGNAL(terminated(QString)), this, SLOT(appTerminated(QString)));
 
 #if 0
     mp_hs->registerCallback(nullptr, HomescreenHandler::onRep_static);
@@ -122,6 +135,8 @@ void HomescreenHandler::tapShortcut(QString application_id)
 		mp_launcher->setCurrent(application_id);
 	}
 #endif
+
+    appStarted(application_id);
 }
 
 #if 0
@@ -155,3 +170,19 @@ void HomescreenHandler::onEv(const string& event, struct json_object* event_cont
     }
 }
 #endif
+
+void HomescreenHandler::appStarted(const QString& application_id)
+{
+    struct agl_shell *agl_shell = aglShell->shell.get();
+    QPlatformNativeInterface *native = qApp->platformNativeInterface();
+    struct wl_output *output = getWlOutput(native, qApp->screens().first());
+
+    HMI_DEBUG("HomeScreen", "Activating application %s", application_id.toStdString().c_str());
+    agl_shell_activate_app(agl_shell, application_id.toStdString().c_str(), output);
+}
+
+void HomescreenHandler::appTerminated(const QString& application_id)
+{
+    HMI_DEBUG("HomeScreen", "Application %s terminated, activating launcher", application_id.toStdString().c_str());
+    appStarted("launcher");
+}

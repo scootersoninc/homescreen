@@ -20,6 +20,7 @@
 #include <QObject>
 
 #include "applicationlauncher.h"
+#include "applaunch_interface.h"
 
 #include "shell.h"
 #include <string>
@@ -50,9 +51,15 @@ public:
 signals:
     void showNotification(QString application_id, QString icon_path, QString text);
     void showInformation(QString info);
+
+public slots:
+    void appStarted(const QString& application_id);
+    void appTerminated(const QString& application_id);
+
 private:
     ApplicationLauncher *mp_launcher;
     Shell *aglShell;
+    org::automotivelinux::AppLaunch *applaunch_iface;
 };
 
 #endif // HOMESCREENHANDLER_H

@@ -15,9 +15,11 @@
 
 TEMPLATE = app
 TARGET = homescreen
-QT = qml quick gui-private
+QT = qml quick gui-private dbus
 CONFIG += c++11 link_pkgconfig wayland-scanner
 PKGCONFIG += wayland-client
+
+DBUS_INTERFACES = $$[QT_SYSROOT]/usr/share/dbus-1/interfaces/org.automotivelinux.AppLaunch.xml
 
 SOURCES += \
     src/main.cpp \
@@ -36,7 +38,6 @@ HEADERS  += \
     src/applicationlauncher.h \
     src/mastervolume.h \
     src/homescreenhandler.h
-
 
 OTHER_FILES += \
     README.md
