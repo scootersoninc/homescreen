@@ -133,10 +133,18 @@ void HomescreenHandler::tapShortcut(QString application_id)
 
 #endif
 
-    if (mp_launcher) {
-        mp_launcher->setCurrent(application_id);
+    QDBusPendingReply<> reply = applaunch_iface->start(application_id);
+    reply.waitForFinished();
+    if (reply.isError()) {
+        HMI_ERROR("HomeScreen","Unable to start application '%s': %s",
+            application_id.toStdString().c_str(),
+            reply.error().message().toStdString().c_str());
+    } else {
+        if (mp_launcher) {
+            mp_launcher->setCurrent(application_id);
+        }
+        appStarted(application_id);
     }
-    appStarted(application_id);
 }
 
 #if 0
