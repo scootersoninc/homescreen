@@ -131,11 +131,11 @@ void HomescreenHandler::tapShortcut(QString application_id)
 	// require calling 'agl_shell_activate_app'
 	agl_shell_activate_app(agl_shell, application_id.toStdString().c_str(), output);
 
-	if (mp_launcher) {
-		mp_launcher->setCurrent(application_id);
-	}
 #endif
 
+    if (mp_launcher) {
+        mp_launcher->setCurrent(application_id);
+    }
     appStarted(application_id);
 }
 
