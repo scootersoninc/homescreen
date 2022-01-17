@@ -24,6 +24,9 @@
 
 #define APPLAUNCH_DBUS_IFACE     "org.automotivelinux.AppLaunch"
 #define APPLAUNCH_DBUS_OBJECT    "/org/automotivelinux/AppLaunch"
+/* LAUNCHER_APP_ID shouldn't be started by applaunchd as it is started as a
+ * user session by systemd */
+#define LAUNCHER_APP_ID          "launcher"
 
 void* HomescreenHandler::myThis = 0;
 
@@ -63,20 +66,27 @@ getWlOutput(QPlatformNativeInterface *native, QScreen *screen)
 
 void HomescreenHandler::tapShortcut(QString application_id)
 {
+    QDBusPendingReply<> reply;
     HMI_DEBUG("HomeScreen","tapShortcut %s", application_id.toStdString().c_str());
 
-    QDBusPendingReply<> reply = applaunch_iface->start(application_id);
+    if (application_id == LAUNCHER_APP_ID)
+        goto activate_app;
+
+    reply = applaunch_iface->start(application_id);
     reply.waitForFinished();
+
     if (reply.isError()) {
         HMI_ERROR("HomeScreen","Unable to start application '%s': %s",
             application_id.toStdString().c_str(),
             reply.error().message().toStdString().c_str());
-    } else {
-        if (mp_launcher) {
-            mp_launcher->setCurrent(application_id);
-        }
-        appStarted(application_id);
+        return;
     }
+
+activate_app:
+    if (mp_launcher) {
+        mp_launcher->setCurrent(application_id);
+    }
+    appStarted(application_id);
 }
 
 void HomescreenHandler::appStarted(const QString& application_id)
