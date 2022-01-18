@@ -40,17 +40,62 @@
 #include <wayland-client.h>
 
 #include "wayland-agl-shell-client-protocol.h"
+#include "wayland-agl-shell-desktop-client-protocol.h"
 #include "shell.h"
+
+struct shell_data {
+	struct agl_shell *shell;
+	struct agl_shell_desktop *shell_desktop;
+};
+
+static void
+agl_shell_desktop_application(void *data,
+			      struct agl_shell_desktop *agl_shell_desktop,
+			      const char *app_id)
+{
+	HomescreenHandler *homescreenHandler = static_cast<HomescreenHandler *>(data);
+
+	if (homescreenHandler)
+		homescreenHandler->addAppToStack(app_id);
+}
+
+static void
+agl_shell_desktop_state_app(void *data,
+			    struct agl_shell_desktop *agl_shell_desktop,
+			    const char *app_id,
+			    const char *app_data,
+			    uint32_t state,
+			    uint32_t role)
+{
+	HomescreenHandler *homescreenHandler = static_cast<HomescreenHandler *>(data);
+
+	if (homescreenHandler && state == AGL_SHELL_DESKTOP_APP_STATE_DESTROYED)
+		homescreenHandler->appTerminated(app_id);
+}
+
+static const struct agl_shell_desktop_listener shell_desktop_listener = {
+   agl_shell_desktop_application,
+   agl_shell_desktop_state_app
+};
 
 static void
 global_add(void *data, struct wl_registry *reg, uint32_t name,
 	   const char *interface, uint32_t)
 {
-	struct agl_shell **shell = static_cast<struct agl_shell **>(data);
+	struct shell_data *shell_data = static_cast<struct shell_data *>(data);
+
+	if (!shell_data)
+		return;
 
 	if (strcmp(interface, agl_shell_interface.name) == 0) {
-		*shell = static_cast<struct agl_shell *>(
+		shell_data->shell = static_cast<struct agl_shell *>(
 			wl_registry_bind(reg, name, &agl_shell_interface, 1)
+		);
+	}
+
+	if (strcmp(interface, agl_shell_desktop_interface.name) == 0) {
+		shell_data->shell_desktop = static_cast<struct agl_shell_desktop *>(
+			wl_registry_bind(reg, name, &agl_shell_desktop_interface, 1)
 		);
 	}
 }
@@ -84,25 +129,22 @@ getWlOutput(QPlatformNativeInterface *native, QScreen *screen)
 }
 
 
-static struct agl_shell *
-register_agl_shell(QPlatformNativeInterface *native)
+static void
+register_agl_shell(QPlatformNativeInterface *native, struct shell_data *shell_data)
 {
 	struct wl_display *wl;
 	struct wl_registry *registry;
-	struct agl_shell *shell = nullptr;
 
 	wl = static_cast<struct wl_display *>(
 			native->nativeResourceForIntegration("display")
 	);
 	registry = wl_display_get_registry(wl);
 
-	wl_registry_add_listener(registry, &registry_listener, &shell);
+	wl_registry_add_listener(registry, &registry_listener, shell_data);
 
 	/* Roundtrip to get all globals advertised by the compositor */
 	wl_display_roundtrip(wl);
 	wl_registry_destroy(registry);
-
-	return shell;
 }
 
 static struct wl_surface *
@@ -210,14 +252,14 @@ int main(int argc, char *argv[])
     QGuiApplication a(argc, argv);
     const char *screen_name;
     bool is_demo_val = false;
+    struct shell_data shell_data = { nullptr, nullptr };
 
     QPlatformNativeInterface *native = qApp->platformNativeInterface();
-    struct agl_shell *agl_shell = nullptr;
     screen_name = getenv("HOMESCREEN_START_SCREEN");
 
     const char *is_demo = getenv("HOMESCREEN_DEMO_CI");
     if (is_demo && strcmp(is_demo, "1") == 0)
-	    is_demo_val = true;
+        is_demo_val = true;
 
     QCoreApplication::setOrganizationDomain("LinuxFoundation");
     QCoreApplication::setOrganizationName("AutomotiveGradeLinux");
@@ -226,15 +268,20 @@ int main(int argc, char *argv[])
     /* we need to have an app_id */
     a.setDesktopFileName("homescreen");
 
-    agl_shell = register_agl_shell(native);
-    if (!agl_shell) {
-	    fprintf(stderr, "agl_shell extension is not advertised. "
-			    "Are you sure that agl-compositor is running?\n");
-	    exit(EXIT_FAILURE);
+    register_agl_shell(native, &shell_data);
+    if (!shell_data.shell) {
+        fprintf(stderr, "agl_shell extension is not advertised. "
+                "Are you sure that agl-compositor is running?\n");
+        exit(EXIT_FAILURE);
+    }
+    if (!shell_data.shell_desktop) {
+        fprintf(stderr, "agl_shell_desktop extension is not advertised. "
+                "Are you sure that agl-compositor is running?\n");
+        exit(EXIT_FAILURE);
     }
 
-    std::shared_ptr<struct agl_shell> shell{agl_shell, agl_shell_destroy};
-    Shell *aglShell = new Shell(shell, &a);
+    std::shared_ptr<struct agl_shell> agl_shell{shell_data.shell, agl_shell_destroy};
+    Shell *aglShell = new Shell(agl_shell, &a);
 
     // import C++ class to QML
     qmlRegisterType<StatusBarModel>("HomeScreen", 1, 0, "StatusBarModel");
@@ -244,6 +291,8 @@ int main(int argc, char *argv[])
     launcher->setCurrent(QStringLiteral("launcher"));
     HomescreenHandler* homescreenHandler = new HomescreenHandler(aglShell, launcher);
     homescreenHandler->init();
+
+    agl_shell_desktop_add_listener(shell_data.shell_desktop, &shell_desktop_listener, homescreenHandler);
 
     QQmlApplicationEngine engine;
     QQmlContext *context = engine.rootContext();
@@ -260,7 +309,7 @@ int main(int argc, char *argv[])
     /* instead of loading main.qml we load one-by-one each of the QMLs,
      * divided now between several surfaces: panels, background.
      */
-    load_agl_shell_app(native, &engine, agl_shell, screen_name, is_demo_val);
+    load_agl_shell_app(native, &engine, shell_data.shell, screen_name, is_demo_val);
 
     return a.exec();
 }
