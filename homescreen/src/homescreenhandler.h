@@ -48,6 +48,8 @@ public:
     static void onEv_static(const string& event, struct json_object* event_contents);
 #endif
 
+    void addAppToStack(const QString& application_id);
+
 signals:
     void showNotification(QString application_id, QString icon_path, QString text);
     void showInformation(QString info);
@@ -60,6 +62,7 @@ private:
     ApplicationLauncher *mp_launcher;
     Shell *aglShell;
     org::automotivelinux::AppLaunch *applaunch_iface;
+    QStringList apps_stack;
 };
 
 #endif // HOMESCREENHANDLER_H

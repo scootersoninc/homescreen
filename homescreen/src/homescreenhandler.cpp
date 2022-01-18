@@ -89,6 +89,27 @@ activate_app:
     appStarted(application_id);
 }
 
+/*
+ * Keep track of currently running apps and the order in which
+ * they were activated. That way, when an app is closed, we can
+ * switch back to the previously active one.
+ */
+void HomescreenHandler::addAppToStack(const QString& application_id)
+{
+    if (application_id == "homescreen")
+        return;
+
+    if (!apps_stack.contains(application_id)) {
+        apps_stack << application_id;
+    } else {
+        int current_pos = apps_stack.indexOf(application_id);
+        int last_pos = apps_stack.size() - 1;
+
+        if (current_pos != last_pos)
+            apps_stack.move(current_pos, last_pos);
+    }
+}
+
 void HomescreenHandler::appStarted(const QString& application_id)
 {
     struct agl_shell *agl_shell = aglShell->shell.get();
@@ -97,10 +118,14 @@ void HomescreenHandler::appStarted(const QString& application_id)
 
     HMI_DEBUG("HomeScreen", "Activating application %s", application_id.toStdString().c_str());
     agl_shell_activate_app(agl_shell, application_id.toStdString().c_str(), output);
+    addAppToStack(application_id);
 }
 
 void HomescreenHandler::appTerminated(const QString& application_id)
 {
-    HMI_DEBUG("HomeScreen", "Application %s terminated, activating launcher", application_id.toStdString().c_str());
-    appStarted("launcher");
+    HMI_DEBUG("HomeScreen", "Application %s terminated, activating last app", application_id.toStdString().c_str());
+    if (apps_stack.contains(application_id)) {
+        apps_stack.removeOne(application_id);
+        appStarted(apps_stack.last());
+    }
 }
