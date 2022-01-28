@@ -26,10 +26,9 @@
 #include <QQuickWindow>
 #include <QTimer>
 
-#if 0
 #include <weather.h>
 #include <bluetooth.h>
-#endif
+
 #include "applicationlauncher.h"
 #include "statusbarmodel.h"
 #include "mastervolume.h"
@@ -299,10 +298,9 @@ int main(int argc, char *argv[])
 
     context->setContextProperty("homescreenHandler", homescreenHandler);
     context->setContextProperty("launcher", launcher);
-#if 0
-    context->setContextProperty("weather", new Weather(bindingAddress));
-    context->setContextProperty("bluetooth", new Bluetooth(bindingAddress, context));
-#endif
+    context->setContextProperty("weather", new Weather());
+    context->setContextProperty("bluetooth", new Bluetooth(false, context));
+
     // we add it here even if we don't use it
     context->setContextProperty("shell", aglShell);
 
