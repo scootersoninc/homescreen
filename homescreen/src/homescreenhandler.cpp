@@ -126,6 +126,7 @@ void HomescreenHandler::appTerminated(const QString& application_id)
     HMI_DEBUG("HomeScreen", "Application %s terminated, activating last app", application_id.toStdString().c_str());
     if (apps_stack.contains(application_id)) {
         apps_stack.removeOne(application_id);
-        appStarted(apps_stack.last());
+        if (!apps_stack.isEmpty())
+            appStarted(apps_stack.last());
     }
 }
