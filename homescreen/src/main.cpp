@@ -221,6 +221,11 @@ load_agl_shell_app(QPlatformNativeInterface *native,
 	else
 		screen = find_screen(screen_name);
 
+	if (!screen) {
+		qDebug() << "No outputs present in the system.";
+		return;
+	}
+
 	qDebug() << "found primary screen " << qApp->primaryScreen()->name() <<
 		"first screen " << qApp->screens().first()->name();
 	output = getWlOutput(native, screen);
