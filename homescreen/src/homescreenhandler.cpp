@@ -51,20 +51,16 @@ void HomescreenHandler::tapShortcut(QString app_id)
 {
 	HMI_DEBUG("HomeScreen","tapShortcut %s", app_id.toStdString().c_str());
 
-	if (app_id == LAUNCHER_APP_ID)
-		goto activate_app;
+	if (app_id == LAUNCHER_APP_ID) {
+		activateApp(app_id);
+		return;
+	}
 
 	if (!mp_applauncher_client->startApplication(app_id)) {
 		HMI_ERROR("HomeScreen","Unable to start application '%s'",
 			  app_id.toStdString().c_str());
 		return;
 	}
-
-activate_app:
-	if (mp_launcher) {
-		mp_launcher->setCurrent(app_id);
-	}
-	activateApp(app_id);
 }
 
 /*
@@ -90,13 +86,16 @@ void HomescreenHandler::addAppToStack(const QString& app_id)
 
 void HomescreenHandler::activateApp(const QString& app_id)
 {
-    struct agl_shell *agl_shell = aglShell->shell.get();
-    QPlatformNativeInterface *native = qApp->platformNativeInterface();
-    struct wl_output *output = getWlOutput(native, qApp->screens().first());
+	struct agl_shell *agl_shell = aglShell->shell.get();
+	QPlatformNativeInterface *native = qApp->platformNativeInterface();
+	struct wl_output *output = getWlOutput(native, qApp->screens().first());
 
-    HMI_DEBUG("HomeScreen", "Activating application %s", app_id.toStdString().c_str());
-    agl_shell_activate_app(agl_shell, app_id.toStdString().c_str(), output);
-    addAppToStack(app_id);
+	if (mp_launcher) {
+		mp_launcher->setCurrent(app_id);
+	}
+
+	HMI_DEBUG("HomeScreen", "Activating application %s", app_id.toStdString().c_str());
+	agl_shell_activate_app(agl_shell, app_id.toStdString().c_str(), output);
 }
 
 void HomescreenHandler::deactivateApp(const QString& app_id)
@@ -110,6 +109,9 @@ void HomescreenHandler::deactivateApp(const QString& app_id)
 
 void HomescreenHandler::processAppStatusEvent(const QString &app_id, const QString &status)
 {
+	HMI_DEBUG("HomeScreen", "Processing application %s, status %s",
+			app_id.toStdString().c_str(), status.toStdString().c_str());
+
 	if (status == "started") {
 		activateApp(app_id);
 	} else if (status == "terminated") {

@@ -29,7 +29,6 @@
 #include <wayland-client.h>
 
 #include "wayland-agl-shell-client-protocol.h"
-#include "wayland-agl-shell-desktop-client-protocol.h"
 #include "shell.h"
 
 #ifndef MIN
@@ -38,36 +37,11 @@
 
 struct shell_data {
 	struct agl_shell *shell;
-	struct agl_shell_desktop *shell_desktop;
+	HomescreenHandler *homescreenHandler;
 	bool wait_for_bound;
 	bool bound_ok;
 	int ver;
 };
-
-static void
-agl_shell_desktop_application(void *data,
-			      struct agl_shell_desktop *agl_shell_desktop,
-			      const char *app_id)
-{
-	HomescreenHandler *homescreenHandler = static_cast<HomescreenHandler *>(data);
-
-	if (homescreenHandler)
-		homescreenHandler->addAppToStack(app_id);
-}
-
-static void
-agl_shell_desktop_state_app(void *data,
-			    struct agl_shell_desktop *agl_shell_desktop,
-			    const char *app_id,
-			    const char *app_data,
-			    uint32_t state,
-			    uint32_t role)
-{
-	HomescreenHandler *homescreenHandler = static_cast<HomescreenHandler *>(data);
-
-	if (homescreenHandler && state == AGL_SHELL_DESKTOP_APP_STATE_DESTROYED)
-		homescreenHandler->deactivateApp(app_id);
-}
 
 static void
 agl_shell_bound_ok(void *data, struct agl_shell *agl_shell)
@@ -87,17 +61,42 @@ agl_shell_bound_fail(void *data, struct agl_shell *agl_shell)
 	shell_data->bound_ok = false;
 }
 
+static void
+agl_shell_app_state(void *data, struct agl_shell *agl_shell,
+		const char *app_id, uint32_t state)
+{
+	struct shell_data *shell_data = static_cast<struct shell_data *>(data);
+	HomescreenHandler *homescreenHandler = shell_data->homescreenHandler;
+
+	if (!homescreenHandler)
+		return;
+
+	switch (state) {
+	case AGL_SHELL_APP_STATE_STARTED:
+		qDebug() << "Got AGL_SHELL_APP_STATE_STARTED for app_id " << app_id;
+		homescreenHandler->processAppStatusEvent(app_id, "started");
+		break;
+	case AGL_SHELL_APP_STATE_TERMINATED:
+		qDebug() << "Got AGL_SHELL_APP_STATE_TERMINATED for app_id " << app_id;
+		// handled by HomescreenHandler::processAppStatusEvent
+		break;
+	case AGL_SHELL_APP_STATE_ACTIVATED:
+		qDebug() << "Got AGL_SHELL_APP_STATE_ACTIVATED for app_id " << app_id;
+		homescreenHandler->addAppToStack(app_id);
+		break;
+	default:
+		break;
+	}
+}
+
+
 #ifdef AGL_SHELL_BOUND_OK_SINCE_VERSION
 static const struct agl_shell_listener shell_listener = {
 	agl_shell_bound_ok,
 	agl_shell_bound_fail,
+	agl_shell_app_state,
 };
 #endif
-
-static const struct agl_shell_desktop_listener shell_desktop_listener = {
-   agl_shell_desktop_application,
-   agl_shell_desktop_state_app
-};
 
 static void
 global_add(void *data, struct wl_registry *reg, uint32_t name,
@@ -112,7 +111,7 @@ global_add(void *data, struct wl_registry *reg, uint32_t name,
 		if (ver >= 2) {
 			shell_data->shell =
 				static_cast<struct agl_shell *>(
-					wl_registry_bind(reg, name, &agl_shell_interface, MIN(2, ver)));
+					wl_registry_bind(reg, name, &agl_shell_interface, MIN(3, ver)));
 #ifdef AGL_SHELL_BOUND_OK_SINCE_VERSION
 			agl_shell_add_listener(shell_data->shell, &shell_listener, data);
 #endif
@@ -123,12 +122,6 @@ global_add(void *data, struct wl_registry *reg, uint32_t name,
 		}
 		shell_data->ver = ver;
 
-	}
-
-	if (strcmp(interface, agl_shell_desktop_interface.name) == 0) {
-		shell_data->shell_desktop = static_cast<struct agl_shell_desktop *>(
-			wl_registry_bind(reg, name, &agl_shell_desktop_interface, 1)
-		);
 	}
 }
 
@@ -321,11 +314,6 @@ int main(int argc, char *argv[])
 			"Are you sure that agl-compositor is running?\n");
 		exit(EXIT_FAILURE);
 	}
-	if (!shell_data.shell_desktop) {
-		fprintf(stderr, "agl_shell_desktop extension is not advertised. "
-			"Are you sure that agl-compositor is running?\n");
-		exit(EXIT_FAILURE);
-	}
 
 	qDebug() << "agl-shell interface is at version " << shell_data.ver;
 	if (shell_data.ver >= 2) {
@@ -352,9 +340,9 @@ int main(int argc, char *argv[])
 
 	ApplicationLauncher *launcher = new ApplicationLauncher();
 	launcher->setCurrent(QStringLiteral("launcher"));
-	HomescreenHandler* homescreenHandler = new HomescreenHandler(aglShell, launcher);
 
-	agl_shell_desktop_add_listener(shell_data.shell_desktop, &shell_desktop_listener, homescreenHandler);
+	HomescreenHandler* homescreenHandler = new HomescreenHandler(aglShell, launcher);
+	shell_data.homescreenHandler = homescreenHandler;
 
 	QQmlApplicationEngine engine;
 	QQmlContext *context = engine.rootContext();

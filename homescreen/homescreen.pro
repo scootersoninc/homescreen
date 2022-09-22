@@ -51,7 +51,7 @@ RESOURCES += \
     qml/qml.qrc
 
 AGL_SHELL_PATH = $$system(pkg-config --variable=pkgdatadir agl-compositor-0.0.20-protocols)
-WAYLANDCLIENTSOURCES += $$AGL_SHELL_PATH/agl-shell.xml $$AGL_SHELL_PATH/agl-shell-desktop.xml
+WAYLANDCLIENTSOURCES += $$AGL_SHELL_PATH/agl-shell.xml
 
 target.path = $${PREFIX}/usr/bin
 target.files += $${OUT_PWD}/$${TARGET}
