@@ -10,6 +10,7 @@
         <file>TopArea.qml</file>
         <file>IconItem.qml</file>
         <file>background.qml</file>
+        <file>background_with_panels.qml</file>
         <file>toppanel.qml</file>
         <file>bottompanel.qml</file>
         <file>background_demo.qml</file>

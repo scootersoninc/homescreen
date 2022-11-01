@@ -50,3 +50,11 @@ void Shell::activate_app(QWindow *win, const QString &app_id)
                            app_id.toStdString().c_str(),
                            output);
 }
+
+void Shell::set_activate_region(struct wl_output *output, int32_t x, int32_t y,
+				int32_t width, int32_t height)
+{
+#ifdef AGL_SHELL_SET_ACTIVATE_REGION_SINCE_VERSION
+	agl_shell_set_activate_region(this->shell.get(), output, x, y, width, height);
+#endif
+}

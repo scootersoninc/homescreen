@@ -40,6 +40,7 @@ public slots:
 private:
 	ApplicationLauncher *mp_launcher;
 	AppLauncherClient *mp_applauncher_client;
+	struct wl_output *m_output;
 
 	Shell *aglShell;
 

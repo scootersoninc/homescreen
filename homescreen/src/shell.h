@@ -41,16 +41,20 @@
 
 class Shell : public QObject
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
-    std::shared_ptr<struct agl_shell> shell;
+	std::shared_ptr<struct agl_shell> shell;
 
-    Shell(std::shared_ptr<struct agl_shell> shell, QObject *parent = nullptr) :
-        QObject(parent), shell(shell) 
-    {}
-public slots:
-    void activate_app(QWindow *win, const QString &app_id);
+	Shell(std::shared_ptr<struct agl_shell> shell, QObject *parent = nullptr) :
+		QObject(parent), shell(shell)
+	{}
+	public slots:
+		void activate_app(QWindow *win, const QString &app_id);
+	void set_activate_region(struct wl_output *output, int32_t x, int32_t y,
+			int32_t width, int32_t height);
+private:
+	struct wl_region *m_region = nullptr;
 };
 
 #endif // SHELLHANDLER_H
