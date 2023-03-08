@@ -210,70 +210,92 @@ find_screen(const char *screen_name)
 }
 
 static void
-load_agl_shell_app(QPlatformNativeInterface *native,
-		   QQmlApplicationEngine *engine,
-		   struct agl_shell *agl_shell,
-		   const char *screen_name, bool is_demo, bool embedded_panels)
+load_agl_shell(QPlatformNativeInterface *native, QQmlApplicationEngine *engine,
+	       struct agl_shell *agl_shell, QScreen *screen)
+{
+	struct wl_surface *bg;
+	struct wl_output *output;
+	int32_t x, y;
+	int32_t width, height;
+	QObject *qobj_bg;
+	QSize size = screen->size();
+
+	// this incorporates the panels directly, but in doing so, it
+	// would also need to specify an activation area the same area
+	// in order to void overlapping any new activation window
+	QQmlComponent bg_comp(engine, QUrl("qrc:/background_with_panels.qml"));
+	qInfo() << bg_comp.errors();
+
+	bg = create_component(native, &bg_comp, screen, &qobj_bg);
+
+	output = getWlOutput(native, screen);
+
+	qDebug() << "Normal mode - with single surface";
+	qDebug() << "Setting homescreen to screen  " << screen->name();
+	agl_shell_set_background(agl_shell, bg, output);
+
+	// 216 is the width size of the panel
+	x = 0;
+	y = 216;
+
+	width  = size.width();
+	height = size.height() - (2 * y);
+
+	qDebug() << "Using custom rectangle " << width << "x" << height
+		<< "+" << x << "x" << y << " for activation";
+	qDebug() << "Panels should be embedded the background surface";
+
+#ifdef AGL_SHELL_SET_ACTIVATE_REGION_SINCE_VERSION
+	agl_shell_set_activate_region(agl_shell, output,
+				      x, y, width, height);
+#endif
+}
+
+static void
+load_agl_shell_for_ci(QPlatformNativeInterface *native,
+		      QQmlApplicationEngine *engine,
+		      struct agl_shell *agl_shell, QScreen *screen)
 {
 	struct wl_surface *bg, *top, *bottom;
 	struct wl_output *output;
 	QObject *qobj_bg, *qobj_top, *qobj_bottom;
-	QScreen *screen = nullptr;
 
-	if (is_demo && !embedded_panels) {
-		QQmlComponent bg_comp(engine, QUrl("qrc:/background_demo.qml"));
-		qInfo() << bg_comp.errors();
+	QQmlComponent bg_comp(engine, QUrl("qrc:/background_demo.qml"));
+	qInfo() << bg_comp.errors();
 
-		QQmlComponent top_comp(engine, QUrl("qrc:/toppanel_demo.qml"));
-		qInfo() << top_comp.errors();
+	QQmlComponent top_comp(engine, QUrl("qrc:/toppanel_demo.qml"));
+	qInfo() << top_comp.errors();
 
-		QQmlComponent bot_comp(engine, QUrl("qrc:/bottompanel_demo.qml"));
-		qInfo() << bot_comp.errors();
+	QQmlComponent bot_comp(engine, QUrl("qrc:/bottompanel_demo.qml"));
+	qInfo() << bot_comp.errors();
 
-		top = create_component(native, &top_comp, screen, &qobj_top);
-		bottom = create_component(native, &bot_comp, screen, &qobj_bottom);
-		bg = create_component(native, &bg_comp, screen, &qobj_bg);
+	top = create_component(native, &top_comp, screen, &qobj_top);
+	bottom = create_component(native, &bot_comp, screen, &qobj_bottom);
+	bg = create_component(native, &bg_comp, screen, &qobj_bg);
 
-		/* engine.rootObjects() works only if we had a load() */
-		StatusBarModel *statusBar = qobj_top->findChild<StatusBarModel *>("statusBar");
-		if (statusBar) {
-			qDebug() << "got statusBar objectname, doing init()";
-			statusBar->init(engine->rootContext());
-		}
-
-		qDebug() << "init debug mode";
-	} else if (!embedded_panels) {
-		QQmlComponent bg_comp(engine, QUrl("qrc:/background.qml"));
-		qInfo() << bg_comp.errors();
-
-		QQmlComponent top_comp(engine, QUrl("qrc:/toppanel.qml"));
-		qInfo() << top_comp.errors();
-
-		QQmlComponent bot_comp(engine, QUrl("qrc:/bottompanel.qml"));
-		qInfo() << bot_comp.errors();
-
-		top = create_component(native, &top_comp, screen, &qobj_top);
-		bottom = create_component(native, &bot_comp, screen, &qobj_bottom);
-		bg = create_component(native, &bg_comp, screen, &qobj_bg);
-
-		/* engine.rootObjects() works only if we had a load() */
-		StatusBarModel *statusBar = qobj_top->findChild<StatusBarModel *>("statusBar");
-		if (statusBar) {
-			qDebug() << "got statusBar objectname, doing init()";
-			statusBar->init(engine->rootContext());
-		}
-
-		qDebug() << "init normal mode";
-	} else {
-		// this incorporates the panels directly, but in doing so, it
-		// would also need to specify an activation area the same area
-		// in order to void overlapping any new activation window
-		QQmlComponent bg_comp(engine, QUrl("qrc:/background_with_panels.qml"));
-		qInfo() << bg_comp.errors();
-
-		bg = create_component(native, &bg_comp, screen, &qobj_bg);
-		qDebug() << "init embedded panels mode";
+	/* engine.rootObjects() works only if we had a load() */
+	StatusBarModel *statusBar = qobj_top->findChild<StatusBarModel *>("statusBar");
+	if (statusBar) {
+		qDebug() << "got statusBar objectname, doing init()";
+		statusBar->init(engine->rootContext());
 	}
+
+	output = getWlOutput(native, screen);
+
+	qDebug() << "Setting homescreen to screen  " << screen->name();
+
+	agl_shell_set_background(agl_shell, bg, output);
+	agl_shell_set_panel(agl_shell, top, output, AGL_SHELL_EDGE_TOP);
+	agl_shell_set_panel(agl_shell, bottom, output, AGL_SHELL_EDGE_BOTTOM);
+
+	qDebug() << "CI mode - with multiple surfaces";
+}
+
+static void
+load_agl_shell_app(QPlatformNativeInterface *native, QQmlApplicationEngine *engine,
+		   struct agl_shell *agl_shell, const char *screen_name, bool is_demo)
+{
+	QScreen *screen = nullptr;
 
 	if (!screen_name)
 		screen = qApp->primaryScreen();
@@ -285,37 +307,10 @@ load_agl_shell_app(QPlatformNativeInterface *native,
 		return;
 	}
 
-	qDebug() << "found primary screen " << qApp->primaryScreen()->name() <<
-		"first screen " << qApp->screens().first()->name();
-	output = getWlOutput(native, screen);
-
-	qDebug() << "Setting homescreen to screen  " << screen->name();
-	agl_shell_set_background(agl_shell, bg, output);
-
-	if (embedded_panels) {
-		int32_t x, y;
-		int32_t width, height;
-		QSize size = screen->size();
-
-		x = 0;
-		y = 216;
-
-		width	= size.width();
-		height = size.height() - (2 * y);
-
-		qDebug() << "Using custom rectangle " << width << "x" << height
-			<< "+" << x << "x" << y << " for activation";
-		qDebug() << "Panels should be embedded the background surface";
-
-#ifdef AGL_SHELL_SET_ACTIVATE_REGION_SINCE_VERSION
-		agl_shell_set_activate_region(agl_shell, output,
-					      x, y, width, height);
-#endif
-
+	if (is_demo) {
+		load_agl_shell_for_ci(native, engine, agl_shell, screen);
 	} else {
-		agl_shell_set_panel(agl_shell, top, output, AGL_SHELL_EDGE_TOP);
-		agl_shell_set_panel(agl_shell, bottom, output, AGL_SHELL_EDGE_BOTTOM);
-		qDebug() << "Setting regular panels";
+		load_agl_shell(native, engine, agl_shell, screen);
 	}
 
 	/* Delay the ready signal until after Qt has done all of its own setup
@@ -404,10 +399,8 @@ int main(int argc, char *argv[])
 	// We add it here even if we don't use it
 	context->setContextProperty("shell", aglShell);
 
-	// Instead of loading main.qml we load one-by-one each of the QMLs,
-	// divided now between several surfaces: panels, background.
 	load_agl_shell_app(native, &engine, shell_data.shell,
-			   screen_name, is_demo_val, is_embedded_panels);
+			   screen_name, is_demo_val);
 
 	return app.exec();
 }
