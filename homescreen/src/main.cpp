@@ -36,6 +36,23 @@
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #endif
 
+QScreen *
+find_screen(const char *screen_name)
+{
+	QList<QScreen *> screens = qApp->screens();
+	QScreen *found = nullptr;
+	QString qstr_name = QString::fromUtf8(screen_name, -1);
+
+	for (QScreen *xscreen : screens) {
+		if (qstr_name == xscreen->name()) {
+			found = xscreen;
+			break;
+		}
+	}
+
+	return found;
+}
+
 struct shell_data {
 	struct agl_shell *shell;
 	HomescreenHandler *homescreenHandler;
@@ -90,12 +107,28 @@ agl_shell_app_state(void *data, struct agl_shell *agl_shell,
 	}
 }
 
+static void
+agl_shell_app_on_output(void *data, struct agl_shell *agl_shell,
+		const char *app_id, const char *output_name)
+{
+	struct shell_data *shell_data = static_cast<struct shell_data *>(data);
+	HomescreenHandler *homescreenHandler = shell_data->homescreenHandler;
+
+	if (!homescreenHandler)
+		return;
+
+	std::pair new_pending_app = std::pair(QString(app_id),
+					      QString(output_name));
+	homescreenHandler->pending_app_list.push_back(new_pending_app);
+}
+
 
 #ifdef AGL_SHELL_BOUND_OK_SINCE_VERSION
 static const struct agl_shell_listener shell_listener = {
 	agl_shell_bound_ok,
 	agl_shell_bound_fail,
 	agl_shell_app_state,
+	agl_shell_app_on_output,
 };
 #endif
 
@@ -112,7 +145,7 @@ global_add(void *data, struct wl_registry *reg, uint32_t name,
 		if (ver >= 2) {
 			shell_data->shell =
 				static_cast<struct agl_shell *>(
-					wl_registry_bind(reg, name, &agl_shell_interface, MIN(4, ver)));
+					wl_registry_bind(reg, name, &agl_shell_interface, MIN(8, ver)));
 #ifdef AGL_SHELL_BOUND_OK_SINCE_VERSION
 			agl_shell_add_listener(shell_data->shell, &shell_listener, data);
 #endif
@@ -192,22 +225,6 @@ create_component(QPlatformNativeInterface *native, QQmlComponent *comp,
 	return getWlSurface(native, win);
 }
 
-static QScreen *
-find_screen(const char *screen_name)
-{
-	QList<QScreen *> screens = qApp->screens();
-	QScreen *found = nullptr;
-	QString qstr_name = QString::fromUtf8(screen_name, -1);
-
-	for (QScreen *xscreen : screens) {
-		if (qstr_name == xscreen->name()) {
-			found = xscreen;
-			break;
-		}
-	}
-
-	return found;
-}
 
 static void
 load_agl_shell(QPlatformNativeInterface *native, QQmlApplicationEngine *engine,

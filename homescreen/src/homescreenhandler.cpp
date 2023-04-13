@@ -11,6 +11,8 @@
 #include "homescreenhandler.h"
 #include "hmi-debug.h"
 
+QScreen *find_screen(const char *output);
+
 // defined by meson build file
 #include QT_QPA_HEADER
 
@@ -98,8 +100,39 @@ void HomescreenHandler::activateApp(const QString& app_id)
 	if (mp_launcher) {
 		mp_launcher->setCurrent(app_id);
 	}
+	HMI_DEBUG("HomeScreen", "Activating app_id %s by default output %p\n",
+			app_id.toStdString().c_str(), mm_output);
 
-	HMI_DEBUG("HomeScreen", "Activating application %s", app_id.toStdString().c_str());
+	// search for a pending application which might have a different output
+	auto iter = pending_app_list.begin();
+	bool found_pending_app = false;
+	while (iter != pending_app_list.end()) {
+		const QString &app_to_search = iter->first;
+
+		if (app_to_search == app_id) {
+			found_pending_app = true;
+			break;
+		}
+
+		iter++;
+	}
+
+	if (found_pending_app) {
+		const QString &output_name = iter->second;
+		QScreen *screen =
+			::find_screen(output_name.toStdString().c_str());
+
+		mm_output = getWlOutput(native, screen);
+		pending_app_list.erase(iter);
+
+		HMI_DEBUG("HomeScreen", "For application %s found another "
+				"output to activate %s\n",
+				app_id.toStdString().c_str(),
+				output_name.toStdString().c_str());
+	}
+
+	HMI_DEBUG("HomeScreen", "Activating application %s",
+			app_id.toStdString().c_str());
 
 	agl_shell_activate_app(agl_shell, app_id.toStdString().c_str(), mm_output);
 }
