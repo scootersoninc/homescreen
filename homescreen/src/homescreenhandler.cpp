@@ -156,5 +156,7 @@ void HomescreenHandler::processAppStatusEvent(const QString &app_id, const QStri
 	} else if (status == "terminated") {
 		HMI_DEBUG("HomeScreen", "Application %s terminated, activating last app", app_id.toStdString().c_str());
 		deactivateApp(app_id);
+	} else if (status == "deactivated") {
+		HMI_DEBUG("HomeScreen", "Application %s deactivated, activating last app", app_id.toStdString().c_str());
 	}
 }

@@ -102,6 +102,10 @@ agl_shell_app_state(void *data, struct agl_shell *agl_shell,
 		qDebug() << "Got AGL_SHELL_APP_STATE_ACTIVATED for app_id " << app_id;
 		homescreenHandler->addAppToStack(app_id);
 		break;
+	case AGL_SHELL_APP_STATE_DEACTIVATED:
+		qDebug() << "Got AGL_SHELL_APP_STATE_DEACTIVATED for app_id " << app_id;
+		homescreenHandler->processAppStatusEvent(app_id, "deactivated");
+		break;
 	default:
 		break;
 	}
@@ -117,9 +121,28 @@ agl_shell_app_on_output(void *data, struct agl_shell *agl_shell,
 	if (!homescreenHandler)
 		return;
 
+	// a couple of use-cases, if there is no app_id in the app_list then it
+	// means this is a request to map the application, from the start to a
+	// different output that the default one. We'd get an
+	// AGL_SHELL_APP_STATE_STARTED which will handle activation.
+	//
+	// if there's an app_id then it means we might have gotten an event to
+	// move the application to another output; so we'd need to process it
+	// by explicitly calling processAppStatusEvent() which would ultimately
+	// activate the application on other output. We'd have to pick-up the
+	// last activated window and activate the default output.
+	//
+	// finally if the outputs are identical probably that's an user-error -
+	// but the compositor won't activate it again, so we don't handle that.
 	std::pair new_pending_app = std::pair(QString(app_id),
 					      QString(output_name));
 	homescreenHandler->pending_app_list.push_back(new_pending_app);
+
+	if (homescreenHandler->apps_stack.contains(QString(app_id))) {
+		qDebug() << "Gove event to move " << app_id <<
+			" to another output " << output_name;
+		homescreenHandler->processAppStatusEvent(app_id, "started");
+	}
 }
 
 

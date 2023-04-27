@@ -30,6 +30,7 @@ public:
 	void activateApp(const QString& app_id);
 	void deactivateApp(const QString& app_id);
 
+	QStringList apps_stack;
 	std::list<std::pair<const QString, const QString>> pending_app_list;
 signals:
 	void showNotification(QString application_id, QString icon_path, QString text);
@@ -44,7 +45,6 @@ private:
 
 	Shell *aglShell;
 
-	QStringList apps_stack;
 };
 
 #endif // HOMESCREENHANDLER_H
