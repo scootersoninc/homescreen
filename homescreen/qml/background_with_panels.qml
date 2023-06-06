@@ -104,7 +104,7 @@ Window {
              height: Screen.height - (2 * 216)
          Image {
              anchors.fill: parent
-             source: './images/AGL_HMI_Blue_Background_NoCar-01.png'
+             source: './images/bg_scooterson.png'
          }
 
         }
