@@ -104,7 +104,7 @@ Window {
              height: Screen.height - (2 * 216)
          Image {
              anchors.fill: parent
-             source: './images/bg_scooterson.png'
+             source: './images/bg_scooterson_vertical.png'
          }
 
         }
