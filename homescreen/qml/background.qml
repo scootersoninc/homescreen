@@ -10,6 +10,6 @@ Window {
 
     Image {
         anchors.fill: parent
-        source: './images/bg_scooterson.png'
+        source: './images/bg_scooterson_vertical.png'
     }
 }
